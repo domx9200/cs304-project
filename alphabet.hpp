@@ -9,5 +9,6 @@ class alphabet
 public:
     void addCharToAlphabet(Character value);
     void printAlphabet();
+    Character getCharacter(int index);
 };
 #endif

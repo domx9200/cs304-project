@@ -12,5 +12,18 @@ void alphabet::printAlphabet()
     {
         std::cout << alpha.at(i).toString() << " and ";
     }
-    std::cout << "no more\n";
+    std::cout << "no more";
+}
+
+Character alphabet::getCharacter(int index)
+{
+    if(index < (int) alpha.size() && index >= 0)
+    {
+        return alpha.at(index);
+    }
+    else
+    {
+        std::cout << "index doesn't exist. returning with NULL character\n"; 
+        return Character("NULL");
+    }
 }
