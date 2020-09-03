@@ -10,5 +10,7 @@ public:
     void addCharToStr(Character value);
     void printStr();
     Character getCharacter(int index);
+    std::vector<Character> getVector();
+    void addCharToStrFront(Character value);
 };
 #endif

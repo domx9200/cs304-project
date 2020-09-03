@@ -1,5 +1,6 @@
 #include "str.hpp"
 #include <iostream>
+#include <vector>
 
 void str::addCharToStr(Character value)
 {
@@ -25,4 +26,9 @@ Character str::getCharacter(int index)
         std::cout << "index doesn't exist. returning with NULL character\n"; 
         return Character("NULL");
     }
+}
+
+void str::addCharToStrFront(Character value)
+{
+    string.insert(string.begin(), value);
 }
