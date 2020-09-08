@@ -3,6 +3,14 @@
 #include "str.hpp"
 #include <list>
 #include <iostream>
+#include <vector>
+
+class DFA
+{
+    std::vector<Character> states;
+    Character startState;
+    std::vector<Character> acceptingStates;
+}; 
 
 int main()
 {
