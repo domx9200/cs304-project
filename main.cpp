@@ -5,12 +5,11 @@
 #include <iostream>
 #include <vector>
 
-class DFA
+bool DFANoAccept(str input)
 {
-    std::vector<Character> states;
-    Character startState;
-    std::vector<Character> acceptingStates;
-}; 
+    //since no string can be accepted the bool will be false always.
+    return false;
+}
 
 int main()
 {
@@ -25,7 +24,6 @@ int main()
     alpha.printAlphabet();
     std::cout << "\n";
 
-
     str string;
     string.addCharToStr(temp);
     string.addCharToStr(temp2);
@@ -34,7 +32,10 @@ int main()
     std::cout << "\n";
 
     std::cout << "string after find lexo: ";
-    string = alpha.findNLexo(9);
-    string.printStr();
+    str lexo = alpha.findNLexo(9);
+    lexo.printStr();
     std::cout << "\n";
+
+    std::cout << "output of DFANoAccept using variable string: " << DFANoAccept(string) << "\n";
+    std::cout << "output of DFANoAccept using variable lexo: " << DFANoAccept(lexo) << "\n";
 }
