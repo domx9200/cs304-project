@@ -32,3 +32,8 @@ void str::addCharToStrFront(Character value)
 {
     string.insert(string.begin(), value);
 }
+
+int str::getSize()
+{
+    return (int) string.size();
+}

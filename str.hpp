@@ -12,5 +12,6 @@ public:
     Character getCharacter(int index);
     std::vector<Character> getVector();
     void addCharToStrFront(Character value);
+    int getSize();
 };
 #endif

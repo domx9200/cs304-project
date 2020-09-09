@@ -11,6 +11,20 @@ bool DFANoAccept(str input)
     return false;
 }
 
+bool DFAEmptyOnly(str input)
+{
+    //all that needs to be done is to check if the input string is 0.
+    if(input.getSize() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+    
+}
+
 int main()
 {
     alphabet alpha;
@@ -35,7 +49,10 @@ int main()
     str lexo = alpha.findNLexo(9);
     lexo.printStr();
     std::cout << "\n";
+    str emptyString;
 
     std::cout << "output of DFANoAccept using variable string: " << DFANoAccept(string) << "\n";
     std::cout << "output of DFANoAccept using variable lexo: " << DFANoAccept(lexo) << "\n";
+    std::cout << "output of DFAEmptyOnly using variable string: " << DFAEmptyOnly(string) << "\n";
+    std::cout << "output of DFAEmptyOnly using variable emptystring: " << DFAEmptyOnly(emptyString) << "\n";
 }
