@@ -13,5 +13,6 @@ public:
     std::vector<Character> getVector();
     void addCharToStrFront(Character value);
     int getSize();
+    Character popValue();
 };
 #endif

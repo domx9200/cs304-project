@@ -37,3 +37,10 @@ int str::getSize()
 {
     return (int) string.size();
 }
+
+Character str::popValue()
+{
+    Character temp = string.at(0);
+    string.erase(string.begin());
+    return temp;
+}

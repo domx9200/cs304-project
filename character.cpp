@@ -11,3 +11,17 @@ std::string Character::toString()
 {
     return value;
 }
+
+std::string Character::getString()
+{
+    return value;
+}
+
+bool Character::equals(Character comp)
+{
+    if(this->getString().compare(comp.getString()) == 0)
+    {
+        return true;
+    }
+    return false;
+}
