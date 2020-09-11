@@ -7,6 +7,8 @@ Character::Character(std::string input)
     value = input;
 }
 
+Character::Character(){}
+
 std::string Character::toString()
 {
     return value;

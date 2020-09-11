@@ -11,5 +11,6 @@ public:
     std::string toString();
     bool equals(Character compare);
     std::string getString();
+    Character();
 };
 #endif
