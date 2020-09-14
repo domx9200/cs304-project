@@ -14,7 +14,7 @@ protected:
     int current;
 public:
     DFA(){};
-    bool runDFA(str input);
+    virtual bool runDFA(str input){return false;};
 };
 
 class DFANoAccept: public DFA
@@ -439,6 +439,11 @@ public:
     }
 };
 
+bool detDFA(DFA *toRun, str input)
+{
+    return toRun->runDFA(input);
+} 
+
 int main()
 {
     alphabet alpha;
@@ -480,6 +485,7 @@ int main()
     std::cout << "output of DFAZeroOnly using onlyZero: " << zero.runDFA(onlyZero) << "\n";
     std::cout << "output of DFAZeroOnly using string: " << zero.runDFA(string) << "\n";
 
+    std::cout << "\n";
     DFAFigure1_4 test1;
     alphabet test1Alpha = alpha;
     for(int i = 0; i < 20; i++)
@@ -534,5 +540,47 @@ int main()
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using " << test6Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_20:   " << test6.runDFA(test6Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "\nrunning DFAFigure1_4 with detDFA:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "string: " << test1Alpha.findNLexo(i).printable() << " result: " << detDFA(&test1, test1Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "\nrunning DFAFigure1_2 with detDFA:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "string: " << test2Alpha.findNLexo(i).printable() << " result: " << detDFA(&test2, test2Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "\nrunning DFAFigure1_8 with detDFA:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "string: " << test3Alpha.findNLexo(i).printable() << " result: " << detDFA(&test3, test3Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "\nrunning DFAFigure1_12 with detDFA:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "string: " << test4Alpha.findNLexo(i).printable() << " result: " << detDFA(&test4, test4Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "\nrunning DFAFigure1_14 with detDFA:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "string: " << test5Alpha.findNLexo(i).printable() << " result: " << detDFA(&test5, test5Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "\nrunning DFAFigure1_20 with detDFA:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "string: " << test6Alpha.findNLexo(i).printable() << " result: " << detDFA(&test6, test6Alpha.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "comparing results with DFAFigure1_20 to running with detDFA and without to show same output:\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "non detDFA: " << test6.runDFA(test6Alpha.findNLexo(i)) << " with detDFA: " << detDFA(&test6, test6Alpha.findNLexo(i)) << "\n";
     }
 }
