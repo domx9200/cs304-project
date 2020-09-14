@@ -29,23 +29,12 @@ Character alphabet::getCharacter(int index)
     }
 }
 
-//NULL will be the result of n being 0
 str alphabet::findNLexo(int n)
-{
+{//4 shoiuld output 01
     str temp;
-    if(n == 0)
-    {
-        temp.addCharToStr(Character("NULL"));
-        return temp;
-    }
-    else if(n < 0)
-    {
-        std::cout << "input is lower than zero, returning empty string\n";
-        return temp;
-    }
     int count = 0;
     int tmp = 1;
-    while(tmp < n)
+    while(tmp <= n)
     {
         n -= tmp;
         count++;
@@ -59,7 +48,7 @@ str alphabet::lexoFindHelper(int n, int count, str temp)
 {
     for(int i = 0; i < count; i++)
     {
-        temp.addCharToStrFront(alpha.at(n % alpha.size()));
+        temp.addCharToStrFront(alpha.at(n % alpha.size()).toString());
         n = n/alpha.size();
     }
     return temp;

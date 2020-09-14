@@ -7,12 +7,15 @@ class str
 {
    std::vector<Character> string;
 public:
-    void addCharToStr(Character value);
+    void addCharToStr(std::string value);
     void printStr();
-    Character getCharacter(int index);
+    std::string getCharacter(int index);
     std::vector<Character> getVector();
-    void addCharToStrFront(Character value);
+    void addCharToStrFront(std::string value);
     int getSize();
     Character popValue();
+    std::vector<Character> getString();
+    void setString(std::vector<std::string>);
+    std::string printable();
 };
 #endif

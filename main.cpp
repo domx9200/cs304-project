@@ -444,17 +444,15 @@ int main()
     alphabet alpha;
     Character temp("0");
     Character temp2("1");
-    Character temp3("2");
     alpha.addCharToAlphabet(temp);
     alpha.addCharToAlphabet(temp2);
-    alpha.addCharToAlphabet(temp3);
     
     alpha.printAlphabet();
     std::cout << "\n";
 
     str string;
-    string.addCharToStr(temp);
-    string.addCharToStr(temp2);
+    string.addCharToStr("0");
+    string.addCharToStr("1");
     std::cout << "string prior to find lexo: ";
     string.printStr();
     std::cout << "\n";
@@ -474,9 +472,8 @@ int main()
     std::cout << "output of DFAEmptyOnly using variable emptystring: " << empty.runDFA(emptyString) << "\n";
 
     lexo.popValue();
-    temp = Character("0");
     str onlyZero;
-    onlyZero.addCharToStr(temp);
+    onlyZero.addCharToStr("0");
 
     DFAZeroOnly zero;
     std::cout << "output of DFAZeroOnly using lexo: " << zero.runDFA(lexo) << "\n";
@@ -484,72 +481,58 @@ int main()
     std::cout << "output of DFAZeroOnly using string: " << zero.runDFA(string) << "\n";
 
     DFAFigure1_4 test1;
-    str test1Pass;
-    test1Pass.addCharToStr(Character("0"));
-    test1Pass.addCharToStr(Character("1"));
-    test1Pass.addCharToStr(Character("1"));
-    test1Pass.addCharToStr(Character("0"));
-    test1Pass.addCharToStr(Character("1"));
-    std::cout << "output of DFAFigure1_4 using test1pass: " << test1.runDFA(test1Pass) << "\n";
+    alphabet test1Alpha = alpha;
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using "<< test1Alpha.findNLexo(i).printable() <<" at " << i << " for DFAFigure1_4:    " << test1.runDFA(test1Alpha.findNLexo(i)) << "\n";
+    }
 
-    str test1fail = test1Pass;
-    test1fail.addCharToStr(Character("0"));
-    std::cout << "output of DFAFigure1_4 using test1fail: " << test1.runDFA(test1fail) << "\n";
-
+    std::cout << "\n";
     DFAFigure1_2 test2;
-    str test2Pass;
-    test2Pass.addCharToStr(Character("REAR"));
-    test2Pass.addCharToStr(Character("FRONT"));
-    test2Pass.addCharToStr(Character("FRONT"));
-    std::cout << "output of DFAFigure1_2 using test2pass: " << test2.runDFA(test2Pass) << "\n";
+    alphabet test2Alpha;
+    test2Alpha.addCharToAlphabet(Character("FRONT"));
+    test2Alpha.addCharToAlphabet(Character("BOTH"));
+    test2Alpha.addCharToAlphabet(Character("NEITHER"));
+    test2Alpha.addCharToAlphabet(Character("REAR"));
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using " << test2Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_2:    " << test2.runDFA(test2Alpha.findNLexo(i)) << "\n";
+    }
 
-    str test2Fail = test2Pass;
-    test2Fail.addCharToStr(Character("NEITHER"));
-    std::cout << "output of DFAFigure1_2 using test2Fail: " << test2.runDFA(test2Fail) << "\n";
 
+    std::cout << "\n";
     DFAFigure1_8 test3;
-    str test3pass;
-    test3pass.addCharToStr(Character("0"));
-    test3pass.addCharToStr(Character("1"));
-    test3pass.addCharToStr(Character("1"));
-    std::cout << "output of DFAFigure1_8 using test3pass: " << test3.runDFA(test3pass) << "\n";
+    alphabet test3Alpha = alpha;
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using " << test3Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_8:    " << test3.runDFA(test3Alpha.findNLexo(i)) << "\n";
+    }
 
-    str test3fail = test3pass;
-    test3fail.addCharToStr(Character("0"));
-    std::cout << "output of DFAFigure1_8 using test3fail: " << test3.runDFA(test3fail) << "\n";
-
+    std::cout << "\n";
     DFAFigure1_12 test4;
-    str test4pass;
-    test4pass.addCharToStr(Character("0"));
-    test4pass.addCharToStr(Character("1"));
-    test4pass.addCharToStr(Character("1"));
-    test4pass.addCharToStr(Character("0"));
-    std::cout << "output of DFAFigure1_12 using test4pass: " << test4.runDFA(test4pass) << "\n";
+    alphabet test4Alpha = alpha;
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using " << test4Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_12:   " << test4.runDFA(test4Alpha.findNLexo(i)) << "\n";
+    }
 
-    str test4fail = test4pass;
-    test4fail.addCharToStrFront(Character("1"));
-    std::cout << "output of DFAFigure1_12 using test4fail: " << test4.runDFA(test4fail) << "\n";
-
+    std::cout << "\n";
     DFAFigure1_14 test5;
-    str test5pass;
-    test5pass.addCharToStr(Character("1"));
-    test5pass.addCharToStr(Character("1"));
-    test5pass.addCharToStr(Character("2"));
-    test5pass.addCharToStr(Character("2"));
-    std::cout << "output of DFAFigure1_14 using test5pass: " << test5.runDFA(test5pass) << "\n";
+    alphabet test5Alpha;
+    test5Alpha.addCharToAlphabet(Character("0"));
+    test5Alpha.addCharToAlphabet(Character("1"));
+    test5Alpha.addCharToAlphabet(Character("2"));
+    test5Alpha.addCharToAlphabet(Character("RESET"));
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using " << test5Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_14:   " << test5.runDFA(test5Alpha.findNLexo(i)) << "\n";
+    }
 
-    str test5fail = test5pass;
-    test5fail.addCharToStr(Character("1"));
-    std::cout << "output of DFAFigure1_14 using test5fail: " << test5.runDFA(test5fail) << "\n";
-
+    std::cout << "\n";
     DFAFigure1_20 test6;
-    str test6pass;
-    test6pass.addCharToStr(Character("1"));
-    test6pass.addCharToStr(Character("1"));
-    test6pass.addCharToStr(Character("1"));
-    std::cout << "output of DFAFigure1_20 using test6pass: " << test6.runDFA(test6pass) << "\n";
-
-    str test6fail = test6pass;
-    test6fail.addCharToStr(Character("1"));
-    std::cout << "output of DFAFigure1_20 using test6fail: " << test6.runDFA(test6fail) << "\n";
+    alphabet test6Alpha = alpha;
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using " << test6Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_20:   " << test6.runDFA(test6Alpha.findNLexo(i)) << "\n";
+    }
 }
