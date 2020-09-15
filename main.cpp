@@ -86,15 +86,21 @@ public:
     }
 };
 
-class DFAZeroOnly: public DFA
+class DFACharOnly: public DFA
 {
+    Character check;
 public:
-    DFAZeroOnly()
+    DFACharOnly()
     {
         states = std::vector<Character> {Character("0"), Character("1"), Character("2")};
         start = Character("0");
         accept = std::vector<Character> {Character("1")};
         current = 0;
+    }
+
+    void addCheck(std::string input)
+    {
+        check = Character(input);
     }
 
     bool runDFA(str input)
@@ -108,7 +114,7 @@ public:
             switch(current) 
             {
                 case 0:
-                    if(temp.equals(Character("0")))
+                    if(temp.equals(check))
                     {
                         current = 1;
                     }
@@ -482,6 +488,13 @@ str outputString(DFA *toRun, str input)
     return toRun->getTrace();
 }
 
+DFACharOnly task7(std::string input)
+{
+    DFACharOnly name;
+    name.addCheck(input);
+    return name;
+}
+
 int main()
 {
     alphabet alpha;
@@ -518,10 +531,18 @@ int main()
     str onlyZero;
     onlyZero.addCharToStr("0");
 
-    DFAZeroOnly zero;
+    DFACharOnly zero;
+    zero.addCheck("0");
     std::cout << "output of DFAZeroOnly using lexo: " << zero.runDFA(lexo) << "\n";
     std::cout << "output of DFAZeroOnly using onlyZero: " << zero.runDFA(onlyZero) << "\n";
     std::cout << "output of DFAZeroOnly using string: " << zero.runDFA(string) << "\n";
+
+    DFACharOnly ones = task7("1");
+    str onlyOnes;
+    onlyOnes.addCharToStr("1");
+    std::cout << "output of DFA created by task7 with the character 1 using lexo: " << ones.runDFA(lexo) << "\n";
+    std::cout << "output of DFA created by task7 with the character 1 using onlyOnes: " << ones.runDFA(onlyOnes) << "\n";
+    std::cout << "output of DFA created by task7 with the character 1 using string: " << ones.runDFA(string) << "\n";
 
     std::cout << "\n";
     DFAFigure1_4 test1;

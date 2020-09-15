@@ -30,7 +30,7 @@ Character alphabet::getCharacter(int index)
 }
 
 str alphabet::findNLexo(int n)
-{//4 shoiuld output 01
+{
     str temp;
     int count = 0;
     int tmp = 1;
