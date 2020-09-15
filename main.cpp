@@ -12,9 +12,11 @@ protected:
     Character start;
     std::vector<Character> accept;
     int current;
+    str trace;
 public:
     DFA(){};
     virtual bool runDFA(str input){return false;};
+    str getTrace() {return trace;};
 };
 
 class DFANoAccept: public DFA
@@ -29,10 +31,13 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
             input.popValue();
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -60,11 +65,14 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
             input.popValue();
             current = 1;
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -91,6 +99,8 @@ public:
 
     bool runDFA(str input)
     {
+        void clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -104,13 +114,14 @@ public:
                     }
                     else
                     {
-                        current = 2;
+                        current = 2; 
                     } 
                     break;   
                 case 1:
-                    current = 2;
+                    current = 2; 
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -137,6 +148,8 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -159,6 +172,7 @@ public:
                     current = 1;
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -187,6 +201,8 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -206,6 +222,7 @@ public:
                     }
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -232,6 +249,8 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -251,7 +270,9 @@ public:
                     }
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
+        
         for(int i = 0; i < (int) accept.size(); i++)
         {
             if(states.at(current).equals(accept.at(i)))
@@ -262,6 +283,7 @@ public:
         current = 0;
         return temp;
     }
+    
 };
 
 class DFAFigure1_12: public DFA
@@ -277,6 +299,8 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -287,6 +311,7 @@ public:
                     if(temp.equals(Character("0")))
                     {
                         current = 1;
+                        
                     }
                     else if(temp.equals(Character("1")))
                     {
@@ -318,6 +343,7 @@ public:
                     }
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -344,6 +370,8 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -381,6 +409,7 @@ public:
                     }
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -407,6 +436,8 @@ public:
 
     bool runDFA(str input)
     {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
         {
@@ -426,6 +457,7 @@ public:
                     }
                     break;
             }
+            trace.addCharToStr(states.at(current).getString());
         }
         for(int i = 0; i < (int) accept.size(); i++)
         {
@@ -443,6 +475,11 @@ bool detDFA(DFA *toRun, str input)
 {
     return toRun->runDFA(input);
 } 
+
+str outputString(DFA toRun)
+{
+    return toRun.getTrace();
+}
 
 int main()
 {
@@ -491,6 +528,7 @@ int main()
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using "<< test1Alpha.findNLexo(i).printable() <<" at " << i << " for DFAFigure1_4:    " << test1.runDFA(test1Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace path using above: " << test1.getTrace().printable() << "\n\n";
     }
 
     std::cout << "\n";
@@ -503,8 +541,8 @@ int main()
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using " << test2Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_2:    " << test2.runDFA(test2Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace path using above: " << test2.getTrace().printable() << "\n\n";
     }
-
 
     std::cout << "\n";
     DFAFigure1_8 test3;
@@ -512,6 +550,7 @@ int main()
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using " << test3Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_8:    " << test3.runDFA(test3Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace path using above: " << test3.getTrace().printable() << "\n\n";
     }
 
     std::cout << "\n";
@@ -520,18 +559,20 @@ int main()
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using " << test4Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_12:   " << test4.runDFA(test4Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace path using above: " << test4.getTrace().printable() << "\n\n";
     }
 
     std::cout << "\n";
     DFAFigure1_14 test5;
     alphabet test5Alpha;
+    test5Alpha.addCharToAlphabet(Character("RESET"));
     test5Alpha.addCharToAlphabet(Character("0"));
     test5Alpha.addCharToAlphabet(Character("1"));
     test5Alpha.addCharToAlphabet(Character("2"));
-    test5Alpha.addCharToAlphabet(Character("RESET"));
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using " << test5Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_14:   " << test5.runDFA(test5Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace path using above: " << test5.getTrace().printable() << "\n\n";
     }
 
     std::cout << "\n";
@@ -540,47 +581,55 @@ int main()
     for(int i = 0; i < 20; i++)
     {
         std::cout << "using " << test6Alpha.findNLexo(i).printable() << " at " << i << " for DFAFigure1_20:   " << test6.runDFA(test6Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace path using above: " << test6.getTrace().printable() << "\n\n";
     }
 
-    std::cout << "\nrunning DFAFigure1_4 with detDFA:\n";
+    std::cout << "\nrunning DFAFigure1_4 with detDFA and outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "string: " << test1Alpha.findNLexo(i).printable() << " result: " << detDFA(&test1, test1Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace: " << outputString(test1).printable() << "\n\n";
     }
 
-    std::cout << "\nrunning DFAFigure1_2 with detDFA:\n";
+    std::cout << "\nrunning DFAFigure1_2 with detDFA and outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "string: " << test2Alpha.findNLexo(i).printable() << " result: " << detDFA(&test2, test2Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace: " << outputString(test2).printable() << "\n\n";
     }
 
-    std::cout << "\nrunning DFAFigure1_8 with detDFA:\n";
+    std::cout << "\nrunning DFAFigure1_8 with detDFA and outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "string: " << test3Alpha.findNLexo(i).printable() << " result: " << detDFA(&test3, test3Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace: " << outputString(test3).printable() << "\n\n";
     }
 
-    std::cout << "\nrunning DFAFigure1_12 with detDFA:\n";
+    std::cout << "\nrunning DFAFigure1_12 with detDFA and outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "string: " << test4Alpha.findNLexo(i).printable() << " result: " << detDFA(&test4, test4Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace: " << outputString(test4).printable() << "\n\n";
     }
 
-    std::cout << "\nrunning DFAFigure1_14 with detDFA:\n";
+    std::cout << "\nrunning DFAFigure1_14 with detDFA and outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "string: " << test5Alpha.findNLexo(i).printable() << " result: " << detDFA(&test5, test5Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace: " << outputString(test5).printable() << "\n\n";
     }
 
-    std::cout << "\nrunning DFAFigure1_20 with detDFA:\n";
+    std::cout << "\nrunning DFAFigure1_20 with detDFA and outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "string: " << test6Alpha.findNLexo(i).printable() << " result: " << detDFA(&test6, test6Alpha.findNLexo(i)) << "\n";
+        std::cout << "trace: " << outputString(test6).printable() << "\n\n";
     }
 
-    std::cout << "comparing results with DFAFigure1_20 to running with detDFA and without to show same output:\n";
+    std::cout << "comparing results with DFAFigure1_20 to running with detDFA and without to show same output... also doing the same for outputString:\n";
     for(int i = 0; i < 20; i++)
     {
         std::cout << "non detDFA: " << test6.runDFA(test6Alpha.findNLexo(i)) << " with detDFA: " << detDFA(&test6, test6Alpha.findNLexo(i)) << "\n";
+        std::cout << "non outputString: " << test6.getTrace().printable() << " with outputString: " << outputString(test6).printable() << "\n";
     }
 }

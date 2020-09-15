@@ -17,5 +17,6 @@ public:
     std::vector<Character> getString();
     void setString(std::vector<std::string>);
     std::string printable();
+    void clearStr();
 };
 #endif

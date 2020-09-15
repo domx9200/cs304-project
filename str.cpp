@@ -73,3 +73,8 @@ std::string str::printable()
     }
     return temp;
 }
+
+void str::clearStr()
+{
+    string.clear();
+}
