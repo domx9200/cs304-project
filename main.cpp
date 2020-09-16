@@ -477,6 +477,135 @@ public:
     }
 };
 
+class DFAGoodbye: public DFA
+{
+public:
+    DFAGoodbye()
+    {
+        states = std::vector<Character> {Character(""), Character("G"), Character("O"), Character("O"), Character("D"), Character("B"), Character("Y"), Character("E")};
+        start = Character("");
+        accept = std::vector<Character> {Character("E")};
+        current = 0;
+    }
+
+    bool runDFA(str input)
+    {
+        trace.clearStr();
+        trace.addCharToStr(states.at(current).getString());
+        bool temp = false;
+        while(input.getSize() != 0)
+        {
+            Character temp = input.popValue();
+            switch(current) 
+            {
+                case 0:
+                    if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    break;
+                case 1:
+                    if(temp.equals(Character("O")))
+                    {
+                        current = 2;
+                    }
+                    else if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    else
+                    {
+                        current = 0;
+                    }
+                    break;
+                case 2:
+                    if(temp.equals(Character("O")))
+                    {
+                        current = 3;
+                    }
+                    else if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    else
+                    {
+                        current = 0;
+                    }
+                    break;
+                case 3:
+                    if(temp.equals(Character("D")))
+                    {
+                        current = 4;
+                    }
+                    else if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    else
+                    {
+                        current = 0;
+                    }
+                    break;
+                case 4:
+                    if(temp.equals(Character("B")))
+                    {
+                        current = 5;
+                    }
+                    else if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    else
+                    {
+                        current = 0;
+                    }
+                    break;
+                case 5:
+                    if(temp.equals(Character("Y")))
+                    {
+                        current = 6;
+                    }
+                    else if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    else
+                    {
+                        current = 0;
+                    }
+                    break;
+                case 6:
+                    if(temp.equals(Character("E")))
+                    {
+                        current = 7;
+                    }
+                    else if(temp.equals(Character("G")))
+                    {
+                        current = 1;
+                    }
+                    else
+                    {
+                        current = 0;
+                    }
+                    break;
+                case 7:
+                    current = 7;
+                    break;
+            }
+            trace.addCharToStr(states.at(current).getString());
+        }
+        for(int i = 0; i < (int) accept.size(); i++)
+        {
+            if(states.at(current).equals(accept.at(i)))
+            {
+                temp = true;
+            }
+        }
+        current = 0;
+        return temp;
+    }
+};
+
 bool detDFA(DFA *toRun, str input)
 {
     return toRun->runDFA(input);
@@ -654,4 +783,30 @@ int main()
         std::cout << "non detDFA: " << test6.runDFA(test6Alpha.findNLexo(i)) << " with detDFA: " << detDFA(&test6, test6Alpha.findNLexo(i)) << "\n";
         std::cout << "non outputString: " << test6.getTrace().printable() << " with outputString: " << outputString(&test6, test6Alpha.findNLexo(i)).printable() << "\n";
     }
+
+    DFAGoodbye goodTest;
+    alphabet goodbyeTest;
+    goodbyeTest.addCharToAlphabet(Character("G"));
+    goodbyeTest.addCharToAlphabet(Character("O"));
+    goodbyeTest.addCharToAlphabet(Character("O"));
+    goodbyeTest.addCharToAlphabet(Character("D"));
+    goodbyeTest.addCharToAlphabet(Character("B"));
+    goodbyeTest.addCharToAlphabet(Character("Y"));
+    goodbyeTest.addCharToAlphabet(Character("E"));
+    std::cout << "running DFAGoodbye expecting all failures:\n";
+    for(int i = 0; i < 100; i++)
+    {
+        std::cout << "string is: " << goodbyeTest.findNLexo(i).printable() << "   output is: " << goodTest.runDFA(goodbyeTest.findNLexo(i)) << "\n";
+    }
+
+    std::cout << "testing with correct string GOODBYE:\n";
+    str correct;
+    correct.addCharToStr("G");
+    correct.addCharToStr("O");
+    correct.addCharToStr("O");
+    correct.addCharToStr("D");
+    correct.addCharToStr("B");
+    correct.addCharToStr("Y");
+    correct.addCharToStr("E");
+    std::cout << "string is: GOODBYE   output is: " << goodTest.runDFA(correct) << "\n";
 }
