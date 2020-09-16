@@ -46,7 +46,6 @@ public:
                 temp = true;
             }
         }
-        temp = false;
         return temp;
     }
     
@@ -96,6 +95,7 @@ public:
         start = Character("0");
         accept = std::vector<Character> {Character("1")};
         current = 0;
+        check = Character("");
     }
 
     void addCheck(std::string input)
@@ -105,7 +105,7 @@ public:
 
     bool runDFA(str input)
     {
-        void clearStr();
+        trace.clearStr();
         trace.addCharToStr(states.at(current).getString());
         bool temp = false;
         while(input.getSize() != 0)
