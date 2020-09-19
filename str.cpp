@@ -20,7 +20,7 @@ std::string str::getCharacter(int index)
 {
     if(index < (int) string.size() && index >= 0)
     {
-        return string.at(index).getString();
+        return string.at(index).toString();
     }
     else
     {
@@ -65,7 +65,7 @@ std::string str::printable()
     std::string temp;
     for(unsigned int i = 0; i < string.size(); i++)
     {
-        temp.append(string.at(i).getString());
+        temp.append(string.at(i).toString());
         if(i != string.size() - 1)
         {
             temp.append(",");

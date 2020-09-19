@@ -10,7 +10,6 @@ public:
     Character(std::string input);
     std::string toString();
     bool equals(Character compare);
-    std::string getString();
     Character();
 };
 #endif

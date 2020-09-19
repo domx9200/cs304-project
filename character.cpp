@@ -14,14 +14,9 @@ std::string Character::toString()
     return value;
 }
 
-std::string Character::getString()
-{
-    return value;
-}
-
 bool Character::equals(Character comp)
 {
-    if(this->getString().compare(comp.getString()) == 0)
+    if(this->toString().compare(comp.toString()) == 0)
     {
         return true;
     }
