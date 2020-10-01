@@ -5,17 +5,56 @@
 #include <list>
 #include <iostream>
 #include <vector>
+#include <optional>
 
+//task 7
+DFA genOneChar(Character toUse)
+{
+    alphabet temp;
+    temp.addCharToAlphabet(toUse);
+    DFA output([](int state){return state == 0 || state == 1 || state == 2;}, temp, 0, [toUse](int state, Character c){
+        switch(state)
+        {
+            case(0):
+                if(c.equals(toUse))
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 2;
+                }
+                break;
+            case(1):
+                return 2;
+                break;
+            case(2):
+                return 2;
+                break;
+        }
+        return -1;
+    }, [](int state){return state == 1;});
+    return output;
+}
+
+//task 10
 bool detDFA(DFA toRun, str input)
 {
     return toRun.runDFA(input);
 }
 
-str getTrace(DFA toRun, str input)
+//task 11
+void getTrace(DFA toRun, str input)
 {
     toRun.runDFA(input);
-    return toRun.getTrace();
+    std::cout << "printing trace: ";
+    toRun.printTrace();
 }
+
+// std::optional<str> task12(DFA toFind)
+// {
+//     str output;
+// }
 
 int main()
 {
@@ -34,226 +73,203 @@ int main()
     std::cout << "string after find lexo: " << alpha.findNLexo(9).printable() << "\n-----------------------------------------------------------------------------------\n";
 
     //end task 1-3
-    //task 4-5
-    std::vector<state> temp; std::vector<state> empty;
-    state onlyState;
-    onlyState.addIndex(0);
-    onlyState.addName("onlyState");
-    onlyState.addTransition("===",0);
-    temp.push_back(onlyState);
-    DFA noAccept(temp, temp.at(0), empty, alpha);
-    std::cout << "dfa noAccept.runDFA(string): " << noAccept.runDFA(string) << "\n";
-    std::cout << "trace: " << noAccept.getTrace().printable() << "\n";
-    std::cout << "dfa noAccept.runDFA(alpha.findNLexo(9)): " << noAccept.runDFA(alpha.findNLexo(9)) << "\n";
-    std::cout << "trace: " << noAccept.getTrace().printable() << "\n-----------------------------------------------------------------------------------\n";
-    //task 4-5 end
+
+    
+    //task 5
+    DFA noAccept([](int state) { return state; }, alpha, 0, 
+                 [](int state, Character c){ return 0; }, [](int qi){ return 0; });
 
     //task 6
-    std::vector<state> states;
-    std::vector<state> accepting;
-    state statePass;
-    statePass.addIndex(0);
-    statePass.addName("0");
-    statePass.addTransition("===",1);
-    states.push_back(statePass);
-    accepting.push_back(statePass);
+    DFA emptyOnly([](int state){return state == 0 || state == 1;}, alpha, 0, 
+                  [](int state, Character c){ return 1; }, [](int state){return state == 0;});
 
-    state stateFail;
-    stateFail.addIndex(1);
-    stateFail.addName("1");
-    stateFail.addTransition("===",1);
-    states.push_back(stateFail);
-    DFA onlyEmpty(states, states.at(0), accepting, alpha);
+    //task 7
+    DFA CharGen = genOneChar(Character("D"));
 
-    std::cout << "dfa onlyEmpty.runDFA(string): " << onlyEmpty.runDFA(string) << "\n";
-    std::cout << "output trace: " << onlyEmpty.getTrace().printable() << "\n";
-    std::cout << "dfa onlyEmpty.runDFA(alpha.findNLexo(0)) prints \"\": " << onlyEmpty.runDFA(alpha.findNLexo(0)) << "\n";
-    std::cout << "output trace: " << onlyEmpty.getTrace().printable() << "\n-----------------------------------------------------------------------------------\n";
-    //task 6 end
+    //task 8 example 1_2
+    //this task was modified slightly to allow for an entry point and an accepting state.
+    alphabet ex1_2;
+    ex1_2.addCharToAlphabet(Character("FRONT"));
+    ex1_2.addCharToAlphabet(Character("REAR"));
+    ex1_2.addCharToAlphabet(Character("BOTH"));
+    ex1_2.addCharToAlphabet(Character("NEITHER"));
+    DFA example1_2([](int state){return state == 0 || state == 1;}, ex1_2, 0, [](int state, Character c){
+        switch(state){
+            case 0:
+                if(c.equals(Character("FRONT"))){return 1;}
+                return 0;
+            case 1:
+                if(c.equals(Character("NEITHER"))){return 0;}
+                return 1;
+        }
+        return -1;
+    }, [](int state){return state == 1;});
+    example1_2.setName("example1_2");
 
-    //task 7 test
-    DFA task7;
-    task7 = task7.createCharDFA(Character("0"));
-    std::cout << "dfa task7.runDFA(alpha.findNLexo(2)) prints \"1\": " << task7.runDFA(alpha.findNLexo(2)) << "\n";
-    std::cout << "output trace: " << task7.getTrace().printable() << "\n";
-    std::cout << "dfa task7.runDFA(alpha.findNLexo(1)) prints \"0\": " << task7.runDFA(alpha.findNLexo(1)) << "\n";
-    std::cout << "output trace: " << task7.getTrace().printable() << "\n";
-    std::cout << "dfa task7.runDFA(alpha.findNLexo(3)) prints \"00\": " << task7.runDFA(alpha.findNLexo(3)) << "\n";
-    std::cout << "output trace: " << task7.getTrace().printable() << "\n-----------------------------------------------------------------------------------\n";
-    //task 7 test end
+    //task 8, example1_4
+    DFA example1_4([](int state){return state == 0 || state == 1 || state == 2;}, alpha, 0, [](int state, Character c){
+        switch(state){
+            case 0:
+                if(c.equals(Character("1"))){ return 1;}
+                return 0;
+            case 1:
+                if(c.equals(Character("0"))){return 2;}
+                return 1;
+            case 2:
+                return 1;
+        }
+        return -1;
+    }, [](int state){return state == 1;});
+    example1_4.setName("example1_4");
 
-    //task 9 is done alongside task 8, strings are lexo functions using
-    //alphabet inside each dfa.
+    //task 8, example 1_8
+    DFA example1_8([](int state){return state == 0 || state == 1;}, alpha, 0, [](int state, Character c){
+        switch(state){
+            case 0:
+                if(c.equals(Character("1"))){return 1;}
+                return 0;
+            case 1:
+                if(c.equals(Character("0"))){return 0;}
+                return 1;
+        }
+        return -1;
+    }, [](int state){return state == 1;});
+    example1_8.setName("example1_8");
 
-    //task 8 dfa1 : book example 1_2
-    //modified to have closed be start point and open as accepting state
-    DFA test; test.createExam1_2();
-    alphabet testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
+    //task 8, example 1_10
+    DFA example1_10([](int state){return state == 0 || state == 1;}, alpha, 0, [](int state, Character c){
+        switch(state){
+            case 0:
+                if(c.equals(Character("1"))){return 1;}
+                return 0;
+            case 1:
+                if(c.equals(Character("0"))){return 0;}
+                return 1;
+        }
+        return -1;
+    }, [](int state){return state == 0;});
+    example1_10.setName("example1_10");
+
+    //task 8, example 1_12
+    DFA example1_12([](int state){return (state <= 4 && state > -1);}, alpha, 2, [](int state, Character c){
+        switch(state){
+            case 2:
+                if(c.equals(Character("0"))){return 1;}
+                return 3;
+            case 1:
+                if(c.equals(Character("1"))){return 0;}
+                return 1;
+            case 0:
+                if(c.equals(Character("0"))){ return 1;}
+                return 0;
+            case 3:
+                if(c.equals(Character("0"))){return 4;}
+                return 3;
+            case 4:
+                if(c.equals(Character("1"))){return 3;}
+                return 4;
+        }
+        return -1;
+    }, [](int state){return state == 1 || state == 3;});
+    example1_12.setName("example1_12");
+    
+    //task 8, example 1_14
+    alphabet ex1_14;
+    ex1_14.addCharToAlphabet(Character("0"));
+    ex1_14.addCharToAlphabet(Character("1"));
+    ex1_14.addCharToAlphabet(Character("2"));
+    ex1_14.addCharToAlphabet(Character("RESET"));
+    DFA example1_14([](int state){return state == 0 || state == 1 || state == 2;}, ex1_14, 0, [](int state, Character c){
+        switch(state) {
+            case 0:
+                if(c.equals(Character("1"))) {return 1;}
+                else if(c.equals(Character("2"))) {return 2;}
+                return 0;
+            case 1:
+                if(c.equals(Character("1"))) {return 2;}
+                else if(c.equals(Character("2")) || c.equals(Character("RESET"))) {return 0;}
+                return 1;
+            case 2:
+                if(c.equals(Character("2"))) {return 1;}
+                else if(c.equals(Character("1")) || c.equals(Character("RESET"))) {return 0;}
+                return 2;
+        }
+        return -1;
+    }, [](int state){return state == 0;});
+    example1_14.setName("example1_14");
+
+    //task 8, self made DFA
+    //checks to see if the word hey exists in the given string
+    alphabet heyBet;
+    heyBet.addCharToAlphabet(Character("h"));
+    heyBet.addCharToAlphabet(Character("e"));
+    heyBet.addCharToAlphabet(Character("y"));
+    DFA heyCheck([](int state){return state <= 3 && state > -1;}, heyBet, 0, [](int state, Character c){
+        switch(state) {
+            case 0:
+                if(c.equals(Character("h"))){return 1;}
+                return 0;
+            case 1:
+                if(c.equals(Character("e"))){return 2;}
+                else if(c.equals(Character("h"))){return 1;}
+                return 0;
+            case 2:
+                if(c.equals(Character("y"))){return 3;}
+                else if(c.equals(Character("h"))){return 1;}
+                return 0;
+            case 3:
+                return 3;
+        }
+        return -1;
+    }, [](int state){return state == 3;});
+    heyCheck.setName("heyCheck");
+
+    //task 8, self made DFA 2
+    DFA oddOnesEvenTotal([](int state){return state <= 3 && state > -1;}, alpha, 0, [](int state, Character c){
+        switch(state) {
+            case 0:
+                if(c.equals(Character("0"))) {return 2;}
+                return 1;
+            case 1:
+                if(c.equals(Character("0"))) {return 3;}
+                return 0;
+            case 2:
+                if(c.equals(Character("0"))) {return 0;}
+                return 3;
+            case 3:
+                if(c.equals(Character("0"))) {return 1;}
+                return 2;
+        }
+        return -1;
+    }, [](int state){return state == 3;});
+    oddOnesEvenTotal.setName("oddOnesEvenTotal");
+
+    //task 9, testing each DFA
+    std::vector<DFA> dVec {example1_2, example1_4, example1_8, example1_10, example1_12, example1_14, heyCheck, oddOnesEvenTotal};
+
+    for(int i = 0; i < 8; i++)
     {
-        std::cout << "dfa exam1_2 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
+        std::cout << "running DFA " << dVec.at(i).getName() << "\n";
+        for(int j = 0; j < 20; j++)
+        {
+            std::cout << "using string " << dVec.at(i).getSigma().findNLexo(j).printable() << ": " << dVec.at(i).runDFA(dVec.at(i).getSigma().findNLexo(j)) << "\n";
+            std::cout << "printing trace: ";
+            dVec.at(i).printTrace();
+            std::cout << "\n";
+        }
+        std::cout << "-----------------------------------------------------------------------------------\n";
     }
-    std::cout << "-----------------------------------------------------------------------------------\n";
 
-    //task 8 dfa2 : book example 1_4
-    test.createExam1_4();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
+    //showcase of tasks 10 and 11
+    for(int i = 0; i < 8; i++)
     {
-        std::cout << "dfa exam1_4 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
+        std::cout << "running DFA " << dVec.at(i).getName() << " with detDFA and getTrace functions\n";
+        for(int j = 0; j < 20; j++)
+        {
+            std::cout << "using string " << dVec.at(i).getSigma().findNLexo(j).printable() << ": " << detDFA(dVec.at(i), dVec.at(i).getSigma().findNLexo(j)) << "\n";
+            getTrace(dVec.at(i), dVec.at(i).getSigma().findNLexo(j));
+            std::cout << "\n";
+        }
+        std::cout << "-----------------------------------------------------------------------------------\n";
     }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 8 dfa3 : book example 1_8
-    test.createExam1_8();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "dfa exam1_8 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 8 dfa4 : book example 1_10
-    test.createExam1_10();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "dfa exam1_10 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 8 dfa5 : book example 1_12
-    test.createExam1_12();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "dfa exam1_10 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 8 dfa6 : book example 1_14
-    test.createExam1_14();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "dfa exam1_10 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 8 dfa7 : made dfa 1
-    //checks if hey is in the string
-    test.createMade1();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "dfa exam1_10 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 8 dfa8 : made dfa 2
-    //checks if there are an odd number of ones and is even.
-    test.createMade2();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "dfa exam1_10 test.runDFA(testAlpha.findNLexo(" << i << ")) prints " << testAlpha.findNLexo(i).printable() << ": " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "output trace: " << test.getTrace().printable() << "\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    //task 10-11 check
-    test.createExam1_2();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with exam1_2: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with exam1_2: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createExam1_4();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with exam1_4: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with exam1_4: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createExam1_8();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with exam1_8: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with exam1_8: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createExam1_10();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with exam1_10: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with exam1_10: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createExam1_12();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with exam1_12: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with exam1_12: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createExam1_14();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with exam1_14: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with exam1_14: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createMade1();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with made1: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with made1: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
-
-    test.createMade2();
-    testAlpha = test.getAlpha();
-    for(int i = 0; i < 21; i++)
-    {
-        std::cout << "running detDFA with createMade2: " << detDFA(test, testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace function output: " << getTrace(test, testAlpha.findNLexo(i)).printable() << "\n";
-        std::cout << "running without detDFA with createMade2: " << test.runDFA(testAlpha.findNLexo(i)) << "\n";
-        std::cout << "trace without function: " << test.getTrace().printable() << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
 }

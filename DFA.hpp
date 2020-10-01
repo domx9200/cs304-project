@@ -1,37 +1,27 @@
 #ifndef DFA_HPP
 #define DFA_HPP
+#include <functional>
 #include <vector>
-#include "character.hpp"
-#include "str.hpp"
-#include "state.hpp"
 #include "alphabet.hpp"
 
 class DFA
 {
-   std::vector<state> Q;
-   state q0;
-   std::vector<state> F;
-   alphabet sigma;
-   state qi;
-   str trace;
+    std::function<bool(int)> Q;
+    alphabet Sigma; 
+    int q0; 
+    std::function<int(int, Character)> Delta;
+    std::function<bool(int)> F;
+    std::vector<int> trace;
+    std::string name;
 public:
-    DFA();
-    DFA(std::vector<state>, state, std::vector<state>, alphabet);
-    str getTrace();
-    std::vector<state> getStates();
-    std::vector<state> getAccepting();
-    state getCurrent();
-    state getStart();
-    bool runDFA(str);
-    DFA createCharDFA(Character);
-    void createExam1_2();
-    void createExam1_4();
-    void createExam1_8();
-    void createExam1_10();
-    void createExam1_12();
-    void createExam1_14();
-    void createMade1();
-    void createMade2();
-    alphabet getAlpha();
+    DFA(std::function<bool(int)> Q, alphabet Sigma, int q0, std::function<int(int, Character)> Delta, std::function<bool(int)> F)
+        : Q(Q), Sigma(Sigma), q0(q0), Delta(Delta), F(F){};
+
+    bool runDFA(str input);
+    alphabet getSigma();
+    void printTrace();
+    std::function<int(int, Character)> getDelta();
+    void setName(std::string n){name = n;};
+    std::string getName(){return name;};
 };
 #endif
