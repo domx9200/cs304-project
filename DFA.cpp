@@ -36,13 +36,3 @@ void DFA::printTrace()
         }
     }
 }
-
-alphabet DFA::getSigma()
-{
-    return Sigma;
-}
-
-std::function<int(int, Character)> DFA::getDelta()
-{
-    return Delta;
-}

@@ -13,5 +13,6 @@ public:
     void printAlphabet();
     Character getCharacter(int index);
     str findNLexo(int n);
+    std::vector<Character> getVec(){return alpha;};
 };
 #endif

@@ -6,12 +6,14 @@
 #include <iostream>
 #include <vector>
 #include <optional>
+#include <algorithm>
 
 //task 7
 DFA genOneChar(Character toUse)
 {
     alphabet temp;
     temp.addCharToAlphabet(toUse);
+    temp.addCharToAlphabet(Character("---"));
     DFA output([](int state){return state == 0 || state == 1 || state == 2;}, temp, 0, [toUse](int state, Character c){
         switch(state)
         {
@@ -51,10 +53,64 @@ void getTrace(DFA toRun, str input)
     toRun.printTrace();
 }
 
-// std::optional<str> task12(DFA toFind)
-// {
-//     str output;
-// }
+str task12Helper(std::function<int(int, Character)> &transitions, std::function<bool(int)> &F, int qi, std::vector<Character> &sigma, std::vector<int> visited, Character c)
+{
+    str output;
+    if(F(qi))
+    {
+        output.addCharToStrFront(c.toString());
+        return output;
+    }
+
+    for(int i = 0; i < (int) sigma.size(); i++)
+    {
+        qi = transitions(qi, sigma.at(i));
+        auto it = std::find(visited.begin(), visited.end(), qi);
+        if(it == visited.end())
+        {
+            visited.push_back(qi);
+            output = task12Helper(transitions, F, qi, sigma, visited, sigma.at(i));
+            if(output.getSize() > 0)
+            {
+                output.addCharToStrFront(c.toString());
+                return output;
+            }
+        }
+    }
+    return output;
+}
+
+std::optional<str> task12(DFA toFind)
+{
+    auto transitions = toFind.getDelta();
+    auto F = toFind.getF();
+    int q0 = toFind.getStart();
+    std::vector<Character> sigma = toFind.getSigma().getVec();
+    std::vector<int> visited {q0};
+    str output;
+
+    if(F(q0))
+    {
+        return output;
+    }
+
+    for(int i = 0; i < (int) sigma.size(); i++)
+    {
+        int qi = transitions(q0, sigma.at(i));
+        if(qi != visited.at(0))
+        {
+            visited.push_back(qi);
+            output = task12Helper(transitions, F, qi, sigma, visited, sigma.at(i));
+            if(output.getSize() > 0 && toFind.runDFA(output))
+            {
+                return output;
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+
 
 int main()
 {
@@ -76,15 +132,18 @@ int main()
 
     
     //task 5
-    DFA noAccept([](int state) { return state; }, alpha, 0, 
-                 [](int state, Character c){ return 0; }, [](int qi){ return 0; });
+    DFA noAccept([](int state) { return state == 0; }, alpha, 0, 
+                 [](int state, Character c){ return 0; }, [](int qi){ return false; });
+    noAccept.setName("noAccept");
 
     //task 6
     DFA emptyOnly([](int state){return state == 0 || state == 1;}, alpha, 0, 
                   [](int state, Character c){ return 1; }, [](int state){return state == 0;});
+    emptyOnly.setName("emptyOnly");
 
     //task 7
     DFA CharGen = genOneChar(Character("D"));
+    CharGen.setName("CharGen");
 
     //task 8 example 1_2
     //this task was modified slightly to allow for an entry point and an accepting state.
@@ -245,9 +304,9 @@ int main()
     oddOnesEvenTotal.setName("oddOnesEvenTotal");
 
     //task 9, testing each DFA
-    std::vector<DFA> dVec {example1_2, example1_4, example1_8, example1_10, example1_12, example1_14, heyCheck, oddOnesEvenTotal};
+    std::vector<DFA> dVec {noAccept, emptyOnly, CharGen, example1_2, example1_4, example1_8, example1_10, example1_12, example1_14, heyCheck, oddOnesEvenTotal};
 
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < (int) dVec.size(); i++)
     {
         std::cout << "running DFA " << dVec.at(i).getName() << "\n";
         for(int j = 0; j < 20; j++)
@@ -261,7 +320,7 @@ int main()
     }
 
     //showcase of tasks 10 and 11
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < (int) dVec.size(); i++)
     {
         std::cout << "running DFA " << dVec.at(i).getName() << " with detDFA and getTrace functions\n";
         for(int j = 0; j < 20; j++)
@@ -271,5 +330,14 @@ int main()
             std::cout << "\n";
         }
         std::cout << "-----------------------------------------------------------------------------------\n";
+    }
+
+    //showcase of task 12
+    for(int i = 0; i < (int) dVec.size(); i++)
+    {
+        std::cout << "finding string using task12 and DFA " << dVec.at(i).getName() << "\n";
+        auto output = task12(dVec.at(i));
+        if(output.has_value() == false) {std::cout << "false, no string found.\n";}
+        else {std::cout << "string found, string is: " << output->printable() << "\n";}
     }
 }
