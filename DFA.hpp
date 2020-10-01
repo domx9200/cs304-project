@@ -26,5 +26,6 @@ public:
     std::function<bool(int)> getQ(){return Q;};
     std::function<bool(int)> getF(){return F;};
     int getStart(){return q0;};
+    void setF(std::function<bool(int)> newF){F = newF;};
 };
 #endif

@@ -53,6 +53,7 @@ void getTrace(DFA toRun, str input)
     toRun.printTrace();
 }
 
+//task 12
 str task12Helper(std::function<int(int, Character)> &transitions, std::function<bool(int)> &F, int qi, std::vector<Character> &sigma, std::vector<int> visited, Character c)
 {
     str output;
@@ -110,7 +111,33 @@ std::optional<str> task12(DFA toFind)
     return std::nullopt;
 }
 
+//task 13
+DFA complementDFA(DFA toComplement)
+{
+    std::function<bool(int)> newF;
+    std::vector<int> toCheck;
+    int totalStates = 0;
+    while(toComplement.getQ()(totalStates))
+    {
+        totalStates++;
+    }
 
+    for(int i = 0; i < totalStates; i++)
+    {
+        if(!toComplement.getF()(i))
+        {
+            toCheck.push_back(i);
+        }
+    }
+
+    newF = [toCheck](int state){
+        auto it = std::find(toCheck.begin(), toCheck.end(), state);
+        return it != toCheck.end();
+    };
+    DFA output = toComplement;
+    output.setF(newF);
+    return output;
+}
 
 int main()
 {
@@ -133,7 +160,7 @@ int main()
     
     //task 5
     DFA noAccept([](int state) { return state == 0; }, alpha, 0, 
-                 [](int state, Character c){ return 0; }, [](int qi){ return false; });
+                 [](int state, Character c){ return 0; }, [](int state){ return state == 1; });
     noAccept.setName("noAccept");
 
     //task 6
@@ -339,5 +366,20 @@ int main()
         auto output = task12(dVec.at(i));
         if(output.has_value() == false) {std::cout << "false, no string found.\n";}
         else {std::cout << "string found, string is: " << output->printable() << "\n";}
+    }
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //showcase of task 13
+    for(int i = 0; i < (int) dVec.size(); i++)
+    {
+        std::cout << "complementing " << dVec.at(i).getName() << "\n";
+        DFA comp = complementDFA(dVec.at(i));
+        for(int j = 0; j < 20; j++)
+        {
+            std::cout << "original output for " << dVec.at(i).getSigma().findNLexo(j).printable() << " is: " << detDFA(dVec.at(i), dVec.at(i).getSigma().findNLexo(j)) << "\n";
+
+            std::cout << "output of comp  for " << dVec.at(i).getSigma().findNLexo(j).printable() << " is: " << detDFA(comp, dVec.at(i).getSigma().findNLexo(j)) << "\n\n";
+        }
+        std::cout << "-----------------------------------------------------------------------------------\n";
     }
 }
