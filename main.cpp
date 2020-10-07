@@ -122,9 +122,8 @@ DFA<T> complementDFA(DFA<T> toComplement)
     return output;
 }
 
-//task 14
 template <typename T, typename F>
-DFA<std::pair<T,F>> unionDFA(DFA<T> DFA1, DFA<F> DFA2){
+DFA<std::pair<T,F>> unin(DFA<T> DFA1, DFA<F> DFA2, bool isunion = true){
 
     std::function<bool(T)> Q1 = DFA1.getQ();
     std::function<bool(F)> Q2 = DFA2.getQ();
@@ -133,15 +132,40 @@ DFA<std::pair<T,F>> unionDFA(DFA<T> DFA1, DFA<F> DFA2){
     std::function<bool(T)> F1 = DFA1.getF();
     std::function<bool(F)> F2 = DFA2.getF();
 
+    if(isunion){
+        DFA<std::pair<T,F>> output([Q1, Q2](std::pair<T,F> state){ return Q1(state.first) && Q2(state.second); }, 
+                DFA1.getSigma(), std::pair<T,F>{DFA1.getStart(), DFA2.getStart()}, 
+                [D1, D2](std::pair<T,F> state, Character c){
+                    T q1 = D1(state.first, c);
+                    F q2 = D2(state.second, c);
+                    return std::pair<T,F>{q1,q2};
+                }, [F1,F2](std::pair<T,F> state){return F1(state.first) || F2(state.second);});
+        output.setName("Union of " + DFA1.getName() + " and " + DFA2.getName());
+    return output; 
+    }
     DFA<std::pair<T,F>> output([Q1, Q2](std::pair<T,F> state){ return Q1(state.first) && Q2(state.second); }, 
                DFA1.getSigma(), std::pair<T,F>{DFA1.getStart(), DFA2.getStart()}, 
                [D1, D2](std::pair<T,F> state, Character c){
                    T q1 = D1(state.first, c);
                    F q2 = D2(state.second, c);
                    return std::pair<T,F>{q1,q2};
-               }, [F1,F2](std::pair<T,F> state){return F1(state.first) || F2(state.second);});
-    output.setName("Union of " + DFA1.getName() + " and " + DFA2.getName());
+               }, [F1,F2](std::pair<T,F> state){return F1(state.first) && F2(state.second);});
+    output.setName("Intersect of " + DFA1.getName() + " and " + DFA2.getName());
     return output;
+}
+
+//task 14
+template <typename T, typename F>
+DFA<std::pair<T,F>> unionDFA(DFA<T> DFA1, DFA<F> DFA2){
+
+    return unin(DFA1, DFA2);
+}
+
+//task 16
+template <typename T, typename F>
+DFA<std::pair<T,F>> intersectDFA(DFA<T> DFA1, DFA<F> DFA2){
+
+    return unin(DFA1, DFA2, false);
 }
 
 int main(){
@@ -372,6 +396,7 @@ int main(){
         std::cout << "-----------------------------------------------------------------------------------\n";
     }
 
+    //task 15
     auto u = unionDFA(example1_12, oddOnesEvenTotal);
     auto u2 = unionDFA(example1_8, example1_4);
     auto u3 = unionDFA(example1_10, example1_12);
@@ -405,6 +430,43 @@ int main(){
         std::cout << u10.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u10.runDFA(alpha.findNLexo(i)) << "\n";
         std::cout << u11.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u11.runDFA(alpha.findNLexo(i)) << "\n";
         std::cout << u12.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u12.runDFA(alpha.findNLexo(i)) << "\n\n";
+    }
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    auto in = intersectDFA(example1_12, oddOnesEvenTotal);
+    auto in2 = intersectDFA(example1_8, example1_4);
+    auto in3 = intersectDFA(example1_10, example1_12);
+    auto in4 = intersectDFA(noAccept, emptyOnly);
+    std::cout << "attempting intersect of standard DFA's.\n";
+    for(int i = 0; i < 20; i++){
+        std::cout << in.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in2.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in2.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in3.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in3.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in4.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in4.runDFA(alpha.findNLexo(i)) << "\n\n";
+    }
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    auto in5 = intersectDFA(example1_12, example1_8);
+    auto in6 = intersectDFA(oddOnesEvenTotal, example1_4);
+    auto in7 = intersectDFA(example1_10, noAccept);
+    auto in8 = intersectDFA(emptyOnly, example1_12);
+    for(int i = 0; i < 20; i++){
+        std::cout << in5.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in5.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in6.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in6.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in7.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in7.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in8.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in8.runDFA(alpha.findNLexo(i)) << "\n\n";
+    }
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    auto in9 = intersectDFA(example1_12, emptyOnly);
+    auto in10 = intersectDFA(oddOnesEvenTotal, noAccept);
+    auto in11 = intersectDFA(example1_8, example1_12);
+    auto in12 = intersectDFA(example1_4, example1_10);
+    for(int i = 0; i < 20; i++){
+        std::cout << in9.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in9.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in10.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in10.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in11.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in11.runDFA(alpha.findNLexo(i)) << "\n";
+        std::cout << in12.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in12.runDFA(alpha.findNLexo(i)) << "\n\n";
     }
     std::cout << "-----------------------------------------------------------------------------------\n";
 }
