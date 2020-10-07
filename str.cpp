@@ -78,3 +78,4 @@ void str::clearStr()
 {
     string.clear();
 }
+
