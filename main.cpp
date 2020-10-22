@@ -423,109 +423,119 @@ int main(){
     }
 
     //task 15
+    auto testunin = [](auto DFA){
+        for(int i = 0; i < 20; i++) {
+            std::cout << DFA.getName() << " string = " << DFA.getSigma().findNLexo(i).printable() << " output = ";
+            if(DFA.runDFA(DFA.getSigma().findNLexo(i)))
+                std::cout << "true\n";
+            else
+                std::cout << "false\n";
+        }
+        std::cout << "\n";
+    };
+    std::cout << "testing union\n";
     auto u = unionDFA(example1_12, oddOnesEvenTotal);
     auto u2 = unionDFA(example1_8, example1_4);
     auto u3 = unionDFA(example1_10, example1_12);
     auto u4 = unionDFA(noAccept, emptyOnly);
-    for(int i = 0; i < 20; i++){
-        std::cout << u.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u2.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u2.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u3.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u3.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u4.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u4.runDFA(alpha.findNLexo(i)) << "\n\n";
-    }
+    testunin(u);
+    testunin(u2);
+    testunin(u3);
+    testunin(u4);
     std::cout << "-----------------------------------------------------------------------------------\n";
+
     std::cout << "attempting to union a unioned DFA with a non-unioned DFA.\n";
     auto u5 = unionDFA(u, emptyOnly); 
     auto u6 = unionDFA(u2, example1_10); 
     auto u7 = unionDFA(u3, noAccept); 
     auto u8 = unionDFA(u4, oddOnesEvenTotal); 
-    for(int i = 0; i < 20; i++){
-        std::cout << u5.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u5.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u6.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u6.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u7.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u7.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u8.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u8.runDFA(alpha.findNLexo(i)) << "\n\n";
-    }
+    testunin(u5);
+    testunin(u6);
+    testunin(u7);
+    testunin(u8);
     std::cout << "-----------------------------------------------------------------------------------\n";
+
     std::cout << "attempting to union two unioned DFA's.\n";
     auto u9 = unionDFA(u, u2);
     auto u10 = unionDFA(u3, u4);
     auto u11 = unionDFA(u, u3);
     auto u12 = unionDFA(u2, u4);
-    for(int i = 0; i < 20; i++){
-        std::cout << u9.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u9.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u10.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u10.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u11.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u11.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << u12.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << u12.runDFA(alpha.findNLexo(i)) << "\n\n";
-    }
+    testunin(u9);
+    testunin(u10);
+    testunin(u11);
+    testunin(u12);
     std::cout << "-----------------------------------------------------------------------------------\n";
 
     //task 17
+    
+
     auto in = intersectDFA(example1_12, oddOnesEvenTotal);
     auto in2 = intersectDFA(example1_8, example1_4);
     auto in3 = intersectDFA(example1_10, example1_12);
     auto in4 = intersectDFA(noAccept, emptyOnly);
-    std::cout << "attempting intersect of standard DFA's.\n";
-    for(int i = 0; i < 20; i++){
-        std::cout << in.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in2.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in2.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in3.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in3.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in4.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in4.runDFA(alpha.findNLexo(i)) << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
 
     auto in5 = intersectDFA(example1_12, example1_8);
     auto in6 = intersectDFA(oddOnesEvenTotal, example1_4);
     auto in7 = intersectDFA(example1_10, noAccept);
     auto in8 = intersectDFA(emptyOnly, example1_12);
-    for(int i = 0; i < 20; i++){
-        std::cout << in5.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in5.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in6.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in6.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in7.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in7.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in8.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in8.runDFA(alpha.findNLexo(i)) << "\n\n";
-    }
-    std::cout << "-----------------------------------------------------------------------------------\n";
 
     auto in9 = intersectDFA(example1_12, emptyOnly);
     auto in10 = intersectDFA(oddOnesEvenTotal, noAccept);
     auto in11 = intersectDFA(example1_8, example1_12);
     auto in12 = intersectDFA(example1_4, example1_10);
-    for(int i = 0; i < 20; i++){
-        std::cout << in9.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in9.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in10.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in10.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in11.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in11.runDFA(alpha.findNLexo(i)) << "\n";
-        std::cout << in12.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in12.runDFA(alpha.findNLexo(i)) << "\n\n";
-    }
+
+    std::cout << "attempting intersect of standard DFA's.\n";
+    testunin(in);
+    testunin(in2);
+    testunin(in3);
+    testunin(in4);
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    testunin(in5);
+    testunin(in6);
+    testunin(in7);
+    testunin(in8);
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    testunin(in9);
+    testunin(in10);
+    testunin(in11);
+    testunin(in12);
     std::cout << "-----------------------------------------------------------------------------------\n";
 
     //task 19
-    auto testSub = [](auto x, auto y, bool test){
-        std::cout << "testing if " << x.getName() << " is a subset of " << y.getName() << ": " << test << "\n";
+    auto testTasks = [](auto x, auto y, bool test, bool isSub = true){
+        std::cout << "testing if " << x.getName() << " is";
+        if(isSub)
+            std::cout << " a subset of ";
+        else
+            std::cout << " equal to ";
+        std::cout << y.getName() << ": ";
+        if(test)
+            std::cout << "true\n";
+        else
+            std::cout << "false\n";
     };
-    testSub(example1_8, example1_4, subset(example1_8, example1_4));
-    testSub(example1_4, example1_8, subset(example1_4, example1_8));
-    testSub(example1_10, example1_10, subset(example1_10, example1_10));
-    testSub(u10, u11, subset(u10, u11));
-    testSub(u11, u10, subset(u11, u10));
-    testSub(u, oddOnesEvenTotal, subset(u, oddOnesEvenTotal));
-    testSub(oddOnesEvenTotal, u, subset(oddOnesEvenTotal, u));
-    testSub(in, example1_12, subset(in, example1_12));
-    testSub(example1_12, in, subset(example1_12, in));
-    testSub(example1_12, example1_12, subset(example1_12, example1_12));
-    testSub(u5, u, subset(u5, u));
-    testSub(u, u5, subset(u,u5));
+    testTasks(example1_8, example1_4, subset(example1_8, example1_4));
+    testTasks(example1_4, example1_8, subset(example1_4, example1_8));
+    testTasks(example1_10, example1_10, subset(example1_10, example1_10));
+    testTasks(u10, u11, subset(u10, u11));
+    testTasks(u11, u10, subset(u11, u10));
+    testTasks(u, oddOnesEvenTotal, subset(u, oddOnesEvenTotal));
+    testTasks(oddOnesEvenTotal, u, subset(oddOnesEvenTotal, u));
+    testTasks(in, example1_12, subset(in, example1_12));
+    testTasks(example1_12, in, subset(example1_12, in));
+    testTasks(example1_12, example1_12, subset(example1_12, example1_12));
+    testTasks(u5, u, subset(u5, u));
+    testTasks(u, u5, subset(u,u5));
     std::cout << "-----------------------------------------------------------------------------------\n";
 
     //task 21
-    auto testEqual = [](auto x, auto y, bool test){
-        std::cout << "testing if " << x.getName() << " is equal to " << y.getName() << ": " << test << "\n";
-    };
-    testEqual(example1_8, example1_4, equals(example1_8, example1_4));
-    testEqual(example1_10, example1_10, equals(example1_10,example1_10));
-    testEqual(u10, u11, equals(u10,u11));
-    testEqual(u, oddOnesEvenTotal, equals(u, oddOnesEvenTotal));
-    testEqual(u,u, equals(u,u));
-    testEqual(in4, noAccept, equals(in4, noAccept));
-    testEqual(in9, noAccept, equals(in9, noAccept));
-    testEqual(in2, example1_4, equals(in2, example1_4));
-    testEqual(in2, example1_8, equals(in2, example1_8));
+    testTasks(example1_8, example1_4, equals(example1_8, example1_4), false);
+    testTasks(example1_10, example1_10, equals(example1_10,example1_10), false);
+    testTasks(u10, u11, equals(u10,u11), false);
+    testTasks(u, oddOnesEvenTotal, equals(u, oddOnesEvenTotal), false);
+    testTasks(u,u, equals(u,u), false);
+    testTasks(in4, noAccept, equals(in4, noAccept), false);
+    testTasks(in9, noAccept, equals(in9, noAccept), false);
+    testTasks(in2, example1_4, equals(in2, example1_4), false);
+    testTasks(in2, example1_8, equals(in2, example1_8), false);
 }
