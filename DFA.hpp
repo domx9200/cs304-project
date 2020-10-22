@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include "alphabet.hpp"
 
 

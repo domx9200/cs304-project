@@ -10,6 +10,17 @@
 #include <algorithm>
 #include <typeinfo>
 
+template <typename T>
+void testDFA(DFA<T> toTest)
+{
+    std::cout << "printing output of DFA " << toTest.getName() << "\n";
+    for(int i = 0; i < 20; i++)
+    {
+        std::cout << "using string " << toTest.getSigma().findNLexo(i).printable() << ": " << toTest.runDFA(toTest.getSigma().findNLexo(i)) << "\n";
+    }
+    std::cout << "-----------------------------------------------------------------------------------\n";
+}
+
 //task 7
 DFA<int> genOneChar(Character toUse)
 {
@@ -58,7 +69,7 @@ void getTrace(DFA<T> toRun, str input)
 
 //task 12
 template <typename T>
-str task12Helper(std::function<T(T, Character)> &transitions, std::function<bool(T)> &F, T qi, std::vector<Character> &sigma, std::vector<T> visited, Character c)
+str task12Helper(std::function<T(T, Character)> transitions, std::function<bool(T)> F, T qi, std::vector<Character> sigma, std::vector<T> *visited, Character c)
 {
     str output;
     if(F(qi))
@@ -70,10 +81,10 @@ str task12Helper(std::function<T(T, Character)> &transitions, std::function<bool
     for(int i = 0; i < (int) sigma.size(); i++)
     {
         auto qNext = transitions(qi, sigma.at(i));
-        auto it = std::find(visited.begin(), visited.end(), qNext);
-        if(it == visited.end())
+        auto it = std::find(visited->begin(), visited->end(), qNext);
+        if(it == visited->end())
         {
-            visited.push_back(qNext);
+            visited->push_back(qNext);
             output = task12Helper(transitions, F, qNext, sigma, visited, sigma.at(i));
             if(output.getSize() > 0)
             {
@@ -99,10 +110,11 @@ std::optional<str> task12(DFA<T> toFind)
 
     for(int i = 0; i < (int) sigma.size(); i++) {
         T qi = transitions(q0, sigma.at(i));
-        if(qi != visited.at(0)) {
+        auto it = std::find(visited.begin(), visited.end(), qi);
+        if(it == visited.end()) {
             visited.push_back(qi);
-            output = task12Helper(transitions, F, qi, sigma, visited, sigma.at(i));
-            if(output.getSize() > 0 && toFind.runDFA(output)) {
+            output = task12Helper(transitions, F, qi, sigma, &visited, sigma.at(i));
+            if(toFind.runDFA(output)) {
                 return output;
             }
         }
@@ -119,9 +131,11 @@ DFA<T> complementDFA(DFA<T> toComplement)
     newF = [origF](T state){ return !origF(state); };
     DFA output = toComplement;
     output.setF(newF);
+    output.setName("complement of " + output.getName());
     return output;
 }
 
+//does both union and intersect as the difference between the two is the || and the && in the new F function
 template <typename T, typename F>
 DFA<std::pair<T,F>> unin(DFA<T> DFA1, DFA<F> DFA2, bool isunion = true){
 
@@ -134,23 +148,23 @@ DFA<std::pair<T,F>> unin(DFA<T> DFA1, DFA<F> DFA2, bool isunion = true){
 
     if(isunion){
         DFA<std::pair<T,F>> output([Q1, Q2](std::pair<T,F> state){ return Q1(state.first) && Q2(state.second); }, 
-                DFA1.getSigma(), std::pair<T,F>{DFA1.getStart(), DFA2.getStart()}, 
-                [D1, D2](std::pair<T,F> state, Character c){
-                    T q1 = D1(state.first, c);
-                    F q2 = D2(state.second, c);
-                    return std::pair<T,F>{q1,q2};
-                }, [F1,F2](std::pair<T,F> state){return F1(state.first) || F2(state.second);});
-        output.setName("Union of " + DFA1.getName() + " and " + DFA2.getName());
+            DFA1.getSigma(), std::pair<T,F>{DFA1.getStart(), DFA2.getStart()}, 
+            [D1, D2](std::pair<T,F> state, Character c){
+                T q1 = D1(state.first, c);
+                F q2 = D2(state.second, c);
+                return std::pair<T,F>{q1,q2};
+            }, [F1,F2](std::pair<T,F> state){return F1(state.first) || F2(state.second);});
+        output.setName("(Union of " + DFA1.getName() + " and " + DFA2.getName() + ")");
     return output; 
     }
     DFA<std::pair<T,F>> output([Q1, Q2](std::pair<T,F> state){ return Q1(state.first) && Q2(state.second); }, 
-               DFA1.getSigma(), std::pair<T,F>{DFA1.getStart(), DFA2.getStart()}, 
-               [D1, D2](std::pair<T,F> state, Character c){
-                   T q1 = D1(state.first, c);
-                   F q2 = D2(state.second, c);
-                   return std::pair<T,F>{q1,q2};
-               }, [F1,F2](std::pair<T,F> state){return F1(state.first) && F2(state.second);});
-    output.setName("Intersect of " + DFA1.getName() + " and " + DFA2.getName());
+        DFA1.getSigma(), std::pair<T,F>{DFA1.getStart(), DFA2.getStart()}, 
+        [D1, D2](std::pair<T,F> state, Character c){
+           T q1 = D1(state.first, c);
+           F q2 = D2(state.second, c);
+           return std::pair<T,F>{q1,q2};
+        }, [F1,F2](std::pair<T,F> state){return F1(state.first) && F2(state.second);});
+    output.setName("(Intersect of " + DFA1.getName() + " and " + DFA2.getName() + ")");
     return output;
 }
 
@@ -166,6 +180,18 @@ template <typename T, typename F>
 DFA<std::pair<T,F>> intersectDFA(DFA<T> DFA1, DFA<F> DFA2){
 
     return unin(DFA1, DFA2, false);
+}
+
+//task 18
+template <typename T, typename F>
+bool subset(DFA<T> X, DFA<F> Y) {
+    return !task12(intersectDFA(complementDFA(Y), X)).has_value();
+}
+
+//task 20
+template<typename T, typename F>
+bool equals(DFA<T> X, DFA<F> Y) {
+    return subset(X, Y) && subset(Y, X);
 }
 
 int main(){
@@ -433,6 +459,7 @@ int main(){
     }
     std::cout << "-----------------------------------------------------------------------------------\n";
 
+    //task 17
     auto in = intersectDFA(example1_12, oddOnesEvenTotal);
     auto in2 = intersectDFA(example1_8, example1_4);
     auto in3 = intersectDFA(example1_10, example1_12);
@@ -469,4 +496,36 @@ int main(){
         std::cout << in12.getName() << " string = " << alpha.findNLexo(i).printable() << " output = " << in12.runDFA(alpha.findNLexo(i)) << "\n\n";
     }
     std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //task 19
+    auto testSub = [](auto x, auto y, bool test){
+        std::cout << "testing if " << x.getName() << " is a subset of " << y.getName() << ": " << test << "\n";
+    };
+    testSub(example1_8, example1_4, subset(example1_8, example1_4));
+    testSub(example1_4, example1_8, subset(example1_4, example1_8));
+    testSub(example1_10, example1_10, subset(example1_10, example1_10));
+    testSub(u10, u11, subset(u10, u11));
+    testSub(u11, u10, subset(u11, u10));
+    testSub(u, oddOnesEvenTotal, subset(u, oddOnesEvenTotal));
+    testSub(oddOnesEvenTotal, u, subset(oddOnesEvenTotal, u));
+    testSub(in, example1_12, subset(in, example1_12));
+    testSub(example1_12, in, subset(example1_12, in));
+    testSub(example1_12, example1_12, subset(example1_12, example1_12));
+    testSub(u5, u, subset(u5, u));
+    testSub(u, u5, subset(u,u5));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //task 21
+    auto testEqual = [](auto x, auto y, bool test){
+        std::cout << "testing if " << x.getName() << " is equal to " << y.getName() << ": " << test << "\n";
+    };
+    testEqual(example1_8, example1_4, equals(example1_8, example1_4));
+    testEqual(example1_10, example1_10, equals(example1_10,example1_10));
+    testEqual(u10, u11, equals(u10,u11));
+    testEqual(u, oddOnesEvenTotal, equals(u, oddOnesEvenTotal));
+    testEqual(u,u, equals(u,u));
+    testEqual(in4, noAccept, equals(in4, noAccept));
+    testEqual(in9, noAccept, equals(in9, noAccept));
+    testEqual(in2, example1_4, equals(in2, example1_4));
+    testEqual(in2, example1_8, equals(in2, example1_8));
 }
