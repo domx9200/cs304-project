@@ -2,6 +2,7 @@
 #include "alphabet.hpp"
 #include "str.hpp"
 #include "DFA.hpp"
+#include "NFA.hpp"
 #include <list>
 #include <iostream>
 #include <vector>
@@ -192,6 +193,22 @@ bool subset(DFA<T> X, DFA<F> Y) {
 template<typename T, typename F>
 bool equals(DFA<T> X, DFA<F> Y) {
     return subset(X, Y) && subset(Y, X);
+}
+
+//task 24
+template<typename T>
+NFA<T> convertDFA(DFA<T> input) {
+    auto dDelta = input.getDelta();
+    auto newDelta = [dDelta](T state, Character c){
+        std::vector<T> out;
+        if(!c.equals(Character(""))) {
+            out.push_back(dDelta(state, c));
+        }
+        return out;
+    };
+    NFA<T> output(input.getQ(), input.getSigma(), input.getStart(), newDelta, input.getF());
+    output.setName("converted from DFA " + input.getName());
+    return output;
 }
 
 int main(){
@@ -467,8 +484,6 @@ int main(){
     std::cout << "-----------------------------------------------------------------------------------\n";
 
     //task 17
-    
-
     auto in = intersectDFA(example1_12, oddOnesEvenTotal);
     auto in2 = intersectDFA(example1_8, example1_4);
     auto in3 = intersectDFA(example1_10, example1_12);
@@ -538,4 +553,331 @@ int main(){
     testTasks(in9, noAccept, equals(in9, noAccept), false);
     testTasks(in2, example1_4, equals(in2, example1_4), false);
     testTasks(in2, example1_8, equals(in2, example1_8), false);
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //task 22
+    testTasks(in4, noAccept, equals(in4, noAccept), false); //intersect 4 should output noAccept
+    testTasks(in9, noAccept, equals(in9, noAccept), false); //intersect 9 should output noAccept
+    testTasks(u4, emptyOnly, equals(u4, emptyOnly), false); //union 4 should output emptyOnly 
+    testTasks(u2, example1_4, equals(u2, example1_4), false); //union 2 should output example1_4
+
+    //expressly defined so that it is the complement of noAccept
+    DFA<int> allAccept([](int state) { return state == 0; }, alpha, 0, 
+                 [](int state, Character c){ return 0; }, [](int state){ return state == 0; });
+    allAccept.setName("allAccept");
+    testTasks(complementDFA(noAccept), allAccept, equals(complementDFA(noAccept), allAccept), false); //the complement of a DFA that accepts nothing should accept everything
+
+    //expressly defined so that it is the complement of emptyOnly
+    DFA<int> notEmptyOnly([](int state){return state == 0 || state == 1;}, alpha, 0, 
+                  [](int state, Character c){ return 1; }, [](int state){return state == 1;});
+    notEmptyOnly.setName("notEmptyOnly");
+    testTasks(complementDFA(emptyOnly), notEmptyOnly, equals(complementDFA(emptyOnly), notEmptyOnly), false); //the complement of this DFA should be true iff it isn't empty
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //task 25
+    NFA<int> test1([](int state){return state <= 3 && state >= 0;}, alpha, 0, [](int state, Character c){
+        std::vector<int> possTrans;
+        if(c.equals(Character(""))) { return possTrans; }
+        switch(state) {
+            case 0:
+                possTrans.push_back(0);
+                if(c.equals(Character("1"))) {possTrans.push_back(1);}
+                break;
+            case 1:
+                possTrans.push_back(2);
+                break;
+            case 2:
+                possTrans.push_back(3);
+                break;
+            case 3:
+                possTrans.push_back(3);
+                break;
+        }
+        return possTrans;
+    }, [](int state){ return state == 3;});
+    //task 26
+    //each nfa will be getting 6 test traces
+    //traces are setup as the state it is currently at, and the character that will bring it to the next state.
+    //the final state will have a character with the value "end", this is so the trace knows it's reached the end.
+    std::vector<std::vector<std::pair<int, Character>>> test1Traces;
+
+    // will fail, as it will end on failure state (-1)
+    test1Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{-1, Character("end")}}); 
+    
+    // will result in a true, as it ends at state 3
+    test1Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("0")}, std::pair<int, Character>{0, Character("1")},
+                                                                 std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{2, Character("1")},
+                                                                 std::pair<int, Character>{3, Character("end")}});
+
+    //using the same set of inputs as above this will fail if it goes to 0 instead of 1
+    test1Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("0")}, std::pair<int, Character>{0, Character("1")}, 
+                                                                 std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{1, Character("1")},
+                                                                 std::pair<int, Character>{2, Character("end")}});
+    
+    //again using the same inputs, this will also fail, in a different way, due to changing how many times 1 goes to 0
+    test1Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("0")}, std::pair<int, Character>{0, Character("1")}, 
+                                                                 std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{0, Character("1")},
+                                                                 std::pair<int, Character>{1, Character("end")}});
+    
+    //test will fail due to not reaching accepting state
+    test1Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{0, Character("end")}});
+
+    //same as above, however it does go to state 1 instead of staying at 0
+    test1Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{1, Character("end")}});
+
+    NFA<int> test2([](int state){return state <= 3 && state >= 0;}, alpha, 0, [](int state, Character c){
+        std::vector<int> possTrans;
+        if(c.equals(Character(""))) { 
+            possTrans.push_back(-1);
+            return possTrans; 
+        }
+        switch(state) {
+            case 0:
+                possTrans.push_back(0);
+                if(c.equals(Character("0"))){possTrans.push_back(1);}
+                else {possTrans.push_back(2);}
+                break;
+            case 1:
+                if(c.equals(Character("0"))){possTrans.push_back(3);}
+                break;
+            case 2:
+                possTrans.push_back(3);
+                if(c.equals(Character("0"))){possTrans.push_back(2);};
+                break;
+            case 3:
+                possTrans.push_back(3);
+                break;
+        }
+        return possTrans;
+    }, [](int state){ return state == 3;});
+    //task 26
+    std::vector<std::vector<std::pair<int, Character>>> test2Traces;
+
+    //will fail, if an epsilon transition returns empty, it goes to a fail state (-1)
+    test2Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{-1, Character("end")}});
+
+    //will also fail
+    test2Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("0")}, std::pair<int, Character>{0, Character("end")}});
+
+    //will also fail, however the state brought to from the character 0 is 1, not 0
+    test2Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("0")}, std::pair<int, Character>{1, Character("end")}});
+
+    //this will pass
+    test2Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{0, Character("1")},
+                                                                   std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{3, Character("end")}});
+
+    //this will fail because at state 2, the input 0 had gone back to state 2
+    test2Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{0, Character("1")},
+                                                                   std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{2, Character("end")}});
+
+    //will pass
+    test2Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("1")}, std::pair<int, Character>{0, Character("1")},
+                                                                   std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{2, Character("1")},
+                                                                   std::pair<int, Character>{3, Character("end")}});
+
+    //nfa from figure 1.27 on page 48
+    NFA<int> test3([](int state){return state >= 1 && state <= 4;}, alpha, 1, [](int state, Character c){
+        std::vector<int> possTrans;
+        bool isEps = c.equals(Character(""));
+        switch(state) {
+            case 1:
+                if(!isEps) {
+                    possTrans.push_back(1);
+                    if(c.equals(Character("1"))) {possTrans.push_back(2);}
+                }
+                break;
+            case 2:
+                if(isEps || c.equals(Character("0"))) {possTrans.push_back(3);}
+                break;
+            case 3:
+                if(!isEps && c.equals(Character("1"))) {possTrans.push_back(4);}
+                break;
+            case 4:
+                if(!isEps) {possTrans.push_back(4);}
+                break;
+        }
+        return possTrans;
+    }, [](int state){return state == 4;});
+    //task 26
+    std::vector<std::vector<std::pair<int, Character>>> test3Traces;
+
+    //will fail, the epsilon will have no transitions therefor reach a failure state (-1)
+    test3Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{-1, Character("end")}});
+
+    //will pass
+    test3Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{2, Character("")},
+                                                                 std::pair<int, Character>{3, Character("1")}, std::pair<int, Character>{4, Character("end")}});
+    
+    //the epsilon will have no transitions therefor reach a failure state (-1)
+    test3Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{1, Character("")},
+                                                                 std::pair<int, Character>{-1, Character("1")}, std::pair<int, Character>{-1, Character("end")}});
+
+    //will fail, didn't reach an accepting state.
+    test3Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{1, Character("1")},
+                                                                 std::pair<int, Character>{2, Character("")}, std::pair<int, Character>{3, Character("end")}});
+
+    //will fail, however will reach the same location despite 0 being in place of epsilon
+    test3Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{1, Character("1")},
+                                                                 std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{3, Character("end")}});
+    
+    //will pass, added the last character 1 which brought us to state 4, an accepting state
+    test3Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{1, Character("1")},
+                                                                 std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{3, Character("1")},
+                                                                 std::pair<int, Character>{4, Character("end")}});
+
+    //from figure 1.33 on page 52 of the book
+    alphabet singleCharacter;
+    singleCharacter.addCharToAlphabet(Character("0"));
+    NFA<int> test4([](int state){return state >= 0 && state <= 5;}, singleCharacter, 0, [](int state, Character c){
+        std::vector<int> possTrans;
+        bool isEps = c.equals(Character(""));
+        switch(state) {
+            case 0:
+                if(isEps) {
+                    possTrans.push_back(1);
+                    possTrans.push_back(3);
+                }
+                break;
+            case 1:
+                if(!isEps) {possTrans.push_back(2);}
+                break;
+            case 2:
+                if(!isEps) {possTrans.push_back(1);}
+                break;
+            case 3:
+                if(!isEps) {possTrans.push_back(4);}
+                break;
+            case 4:
+                if(!isEps) {possTrans.push_back(5);}
+                break;
+            case 5:
+                if(!isEps) {possTrans.push_back(3);}
+                break;
+        }
+        return possTrans;
+    }, [](int state){return state == 1 || state == 3;});
+    //task 26
+    std::vector<std::vector<std::pair<int, Character>>> test4Traces;
+
+    //fails because it goes to a failure state, the first state, 0, only has epsilon transitions
+    test4Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("0")}, std::pair<int, Character>{-1, Character("end")}});
+
+    //passes because the epsilon transition brought us to state 1, which is accepting
+    test4Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{1, Character("end")}});
+
+    //passes as well, because the epsiilon transition brought us to state 3, which is also
+    test4Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{3, Character("end")}});
+
+    //fails because the end state isn't in accepting states
+    test4Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{3, Character("0")},
+                                                                 std::pair<int, Character>{4, Character("end")}});
+    
+    //fail because the end state isn't in accepting states
+    test4Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{3, Character("0")},
+                                                                 std::pair<int, Character>{4, Character("0")}, std::pair<int, Character>{5, Character("end")}});
+
+    //passes because end state is in accepting states
+    test4Traces.push_back(std::vector<std::pair<int, Character>>{std::pair<int, Character>{0, Character("")}, std::pair<int, Character>{1, Character("0")},
+                                                                 std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{1, Character("end")}});
+
+    NFA<int> test5([](int state){return state >= 1 && state <= 3;}, alpha, 1, [](int state, Character c){
+        std::vector<int> possTrans;
+        bool isEps = c.equals(Character(""));
+        switch(state) {
+            case 1:
+                if(isEps) {possTrans.push_back(3);}
+                else if(c.equals(Character("1"))){possTrans.push_back(2);}
+                break;
+            case 2:
+                if(!isEps) {
+                    possTrans.push_back(3);
+                    if(c.equals(Character("0"))) {possTrans.push_back(2);}
+                }
+                break;
+            case 3:
+                if(!isEps && c.equals(Character("0"))) {possTrans.push_back(1);}
+                break;
+        }
+        return possTrans;
+    }, [](int state){ return state == 1;});
+    //task 26
+    std::vector<std::vector<std::pair<int, Character>>> test5Traces;
+
+    //passes, ended at an accepting state.
+    test5Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("0")},
+                                                                  std::pair<int, Character>{1, Character("end")}});
+
+    // //fails, goes to failure state if transition vector is empty
+    test5Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("1")},
+                                                                  std::pair<int, Character>{-1, Character("end")}});
+
+    // //fails, doesn't reach an accepting state
+    test5Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{2, Character("0")},
+                                                                  std::pair<int, Character>{3, Character("end")}});
+
+    // //is an accepting state, passes
+    test5Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("1")}, std::pair<int, Character>{2, Character("0")},
+                                                                  std::pair<int, Character>{2, Character("0")}, std::pair<int, Character>{3, Character("0")},
+                                                                  std::pair<int, Character>{1, Character("end")}});
+
+    // //fails, went to failing state by attempting epsilon transition without a transition
+    test5Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("")},
+                                                                  std::pair<int, Character>{-1, Character("end")}});
+
+    // //fails, isn't at an accepting state at the end of the string
+    test5Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("0")},
+                                                                  std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("end")}});
+
+    NFA<int> test6([](int state){return state >= 1 && state <= 4;}, alpha, 1, [](int state, Character c){
+        std::vector<int> possTrans;
+        bool isEps = c.equals(Character(""));
+        switch(state) {
+            case 1:
+                if(isEps) {possTrans.push_back(3);}
+                else if(c.equals(Character("0"))) {possTrans.push_back(2);}
+                break;
+            case 2:
+                if(!isEps) {
+                    if(c.equals(Character("1"))) {
+                        possTrans.push_back(2);
+                        possTrans.push_back(4);
+                    }
+                }
+                break;
+            case 3:
+                if(isEps) {possTrans.push_back(2);}
+                else if(c.equals(Character("0"))) {possTrans.push_back(4);}
+                break;
+            case 4:
+                if(!isEps && c.equals(Character("0"))) {possTrans.push_back(3);}
+                break;
+        }
+        return possTrans;
+    }, [](int state){ return state == 3;});
+    //task 26
+    std::vector<std::vector<std::pair<int, Character>>> test6Traces;
+
+    //fails, didn't end at an accepting state
+    test6Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("0")},
+                                                                  std::pair<int, Character>{4, Character("end")}});
+
+    //fails, goes to failure state if transition vector is empty
+    test6Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("1")},
+                                                                  std::pair<int, Character>{-1, Character("end")}});
+
+    //fails, doesn't reach an accepting state
+    test6Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{2, Character("1")},
+                                                                  std::pair<int, Character>{4, Character("end")}});
+
+    // //is an accepting state, passes
+    test6Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("0")}, std::pair<int, Character>{2, Character("1")},
+                                                                  std::pair<int, Character>{4, Character("0")}, std::pair<int, Character>{3, Character("end")}});
+
+    // //fails, wasn't at an accepting state
+    test6Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("")},
+                                                                  std::pair<int, Character>{2, Character("end")}});
+
+    // //fails, it found an empty transition table, so it goes to the failure state
+    test6Traces.push_back(std::vector<std::pair<int, Character>> {std::pair<int, Character>{1, Character("")}, std::pair<int, Character>{3, Character("0")},
+                                                                  std::pair<int, Character>{4, Character("")}, std::pair<int, Character>{-1, Character("end")}});
 }
