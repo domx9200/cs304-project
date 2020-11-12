@@ -18,5 +18,8 @@ public:
     void setString(std::vector<std::string>);
     std::string printable();
     void clearStr();
+    void removeFront();
+    str(std::vector<Character> input) {string = input;};
+    str(){};
 };
 #endif

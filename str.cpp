@@ -79,3 +79,6 @@ void str::clearStr()
     string.clear();
 }
 
+void str::removeFront(){
+    string.erase(string.begin());
+}
