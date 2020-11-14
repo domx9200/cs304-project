@@ -15,7 +15,7 @@ void str::printStr()
         std::cout << string.at(i).toString();
     }
 }
-//note that the character that gets returned does not share the same address as the original character
+
 std::string str::getCharacter(int index)
 {
     if(index < (int) string.size() && index >= 0)
@@ -81,4 +81,16 @@ void str::clearStr()
 
 void str::removeFront(){
     string.erase(string.begin());
+}
+
+int str::compare(str toComp) {
+    std::string thisS;
+    for(int i = 0; i < (int) this->string.size(); i++){
+        thisS.append(this->string.at(i).toString());
+    }
+    std::string compS;
+    for(int i = 0; i < (int)toComp.getString().size(); i++){
+        compS.append(toComp.getString().at(i).toString());
+    }
+    return thisS.compare(compS);
 }

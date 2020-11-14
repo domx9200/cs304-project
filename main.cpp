@@ -230,7 +230,7 @@ bool oracle(NFA<T> input, str check, std::vector<std::pair<T, bool>> trace, bool
     }
 
     //if it is expecting an epsilon transition here then it will only run this,
-    //if it doesn't find what it's looking for then somthing is wrong.
+    //if it doesn't find what it's looking for then something is wrong.
     if(std::get<1>(trace.at(0))) {
         //calls the delta function with epsilon
         std::vector<T> temp = input.getDelta()(currentState, Character(""));
@@ -243,7 +243,7 @@ bool oracle(NFA<T> input, str check, std::vector<std::pair<T, bool>> trace, bool
         }
     }
 
-    //will only check this if the boolean is false
+    //will only check this if it isn't expecting an epsilon transition
     if(!std::get<1>(trace.at(0))){
         std::vector<T> temp = input.getDelta()(currentState, check.getString().at(0));
         //again if empty it just doesn't run
@@ -253,6 +253,87 @@ bool oracle(NFA<T> input, str check, std::vector<std::pair<T, bool>> trace, bool
                 check.removeFront();
                 return oracle(input, check, trace, isTrue, temp.at(i));
             }
+        }
+    }
+    return false;
+}
+
+template<typename T>
+traceTree<T> forkingHelp(NFA<T> input, str inStr, T qi) {
+    std::vector<traceTree<T>> children;
+    std::vector<T> epsilonOutput = input.getDelta()(qi, Character(""));
+    for(int i = 0; i < (int) epsilonOutput.size(); i++) {children.push_back(forkingHelp(input, inStr, epsilonOutput.at(i)));}
+
+    //end if it reaches epsilon/empty
+    if(inStr.getSize() > 0) {
+        Character currentChar(inStr.getCharacter(0));
+        std::vector<T> charOutput = input.getDelta()(qi, currentChar);
+        inStr.removeFront();
+        for(int i = 0; i < (int) charOutput.size(); i++) {children.push_back(forkingHelp(input, inStr, charOutput.at(i)));}
+        return traceTree<T>(qi, currentChar, input.getF()(qi), children);
+    }
+    return traceTree<T>(qi, Character(""), input.getF()(qi), children);
+}
+
+//task 30
+template<typename T>
+traceTree<T> forking(NFA<T> input, str inStr) {
+    return forkingHelp(input, inStr, input.getStart());
+}
+
+//task 32
+template<typename T>
+bool backTracking(NFA<T> input, str inStr) {
+    std::vector<std::pair<T, str>> visited;
+    std::vector<std::pair<T, str>> pending = {std::pair<T, str>{input.getStart(), inStr}};
+    while(pending.size() != 0){
+        std::pair<T, str> temp = pending.at(0);
+        pending.erase(pending.begin());
+        if(temp.second.getSize() == 0 && input.getF()(temp.first)){return true;}
+        std::vector<T> epsOut = input.getDelta()(temp.first, Character(""));
+        for(int i = 0; i < (int) epsOut.size(); i++) {
+            bool isInV = false;
+            for(int j = 0; j < (int) visited.size(); j++) {
+                if(visited.at(j).first == epsOut.at(i) && visited.at(j).second.compare(temp.second) == 0) {
+                    isInV = true;
+                }
+            }
+            if(!isInV){
+                std::pair<T, str> test(epsOut.at(i), temp.second);
+                visited.push_back(test);
+                bool isInP = false;
+                for(int j = 0; j < (int) pending.size(); j++) {
+                    if(pending.at(j).first == epsOut.at(i) && pending.at(j).second.compare(temp.second) == 0) {
+                        isInP = true;
+                    }
+                }
+                if(!isInP)
+                    pending.push_back(test);
+            }
+        }
+        if(temp.second.getSize() > 0) {
+            std::vector<T> charOut = input.getDelta()(temp.first, Character(temp.second.getCharacter(0)));
+            temp.second.removeFront();
+            for(int i = 0; i < (int) charOut.size(); i++) {
+                bool isInV = false;
+                for(int j = 0; j < (int) visited.size(); j++) {
+                    if(visited.at(j).first == charOut.at(i) && visited.at(j).second.compare(temp.second) == 0) {
+                        isInV = true;
+                    }
+                }
+                if(!isInV){
+                    std::pair<T, str> test(charOut.at(i), temp.second);
+                    visited.push_back(test);
+                    bool isInP = false;
+                    for(int j = 0; j < (int) pending.size(); j++) {
+                        if(pending.at(j).first == charOut.at(i) && pending.at(j).second.compare(temp.second) == 0) {
+                            isInP = true;
+                        }
+                    }
+                    if(!isInP)
+                        pending.push_back(test);
+                }
+            } 
         }
     }
     return false;
@@ -625,6 +706,7 @@ int main(){
     //defining characters 0 and 1 because they are all that I use in these situations
     Character zero("0");
     Character one("1");
+    Character eps("");
 
     //task 25
     NFA<int> test1([](int state){return state <= 3 && state >= 0;}, alpha, 0, [](int state, Character c){
@@ -685,7 +767,6 @@ int main(){
     NFA<int> test2([](int state){return state <= 3 && state >= 0;}, alpha, 0, [](int state, Character c){
         std::vector<int> possTrans;
         if(c.equals(Character(""))) { 
-            possTrans.push_back(-1);
             return possTrans; 
         }
         switch(state) {
@@ -875,6 +956,7 @@ int main(){
                 if(!isEps && c.equals(Character("0"))) {possTrans.push_back(1);}
                 break;
         }
+        if(!c.equals(Character("")) && possTrans.size() == 0){possTrans.push_back(state);}
         return possTrans;
     }, [](int state){ return state == 1;});
     test5.setName("test5");
@@ -935,6 +1017,7 @@ int main(){
                 if(!isEps && c.equals(Character("0"))) {possTrans.push_back(3);}
                 break;
         }
+        if(!c.equals(Character("")) && possTrans.size() == 0){possTrans.push_back(state);}
         return possTrans;
     }, [](int state){ return state == 3;});
     test6.setName("test6");
@@ -981,4 +1064,108 @@ int main(){
     oracleTest(test4, test4Traces, test4Strings, std::vector<bool>{true, true, false, false, false, true});
     oracleTest(test5, test5Traces, test5Strings, std::vector<bool>{true, false, false, true, false, true});
     oracleTest(test6, test6Traces, test6Strings, std::vector<bool>{false, false, false, true, false, false});
+
+
+    auto forkingTest = [](auto handMade, auto functionMade){
+        std::cout << "testing to see if they are equal\n starting with the hand made trace tree\n";
+        handMade.printTree();
+        std::cout << "now printing the function made trace tree\n";
+        functionMade.printTree();
+    };
+    //this sucks to make by hand, also task 29
+    traceTree<int> test1TraceTree(0, one, false, std::vector<traceTree<int>>{
+        traceTree<int>(0, Character(""), false, std::vector<traceTree<int>>{}),
+        traceTree<int>(1, Character(""), false, std::vector<traceTree<int>>{})
+    });
+
+    traceTree<int> test2TraceTree(0, one, false, std::vector<traceTree<int>>{
+        traceTree<int>(0, one, false, std::vector<traceTree<int>>{
+            traceTree<int>(0, zero, false, std::vector<traceTree<int>>{
+                traceTree<int>(0, eps, false, std::vector<traceTree<int>>{}),
+                traceTree<int>(1, eps, false, std::vector<traceTree<int>>{})
+            }),
+            traceTree<int>(2, zero, false, std::vector<traceTree<int>>{
+                traceTree<int>(3, eps, true, std::vector<traceTree<int>>{}),
+                traceTree<int>(2, eps, false, std::vector<traceTree<int>>{})
+            })
+        }),
+        traceTree<int>(2, one, false, std::vector<traceTree<int>>{
+            traceTree<int>(3, zero, true, std::vector<traceTree<int>>{
+                traceTree<int>(3, eps, true, std::vector<traceTree<int>>{})
+            })
+        })
+    });
+
+    traceTree<int> test3TraceTree(1, one, false, std::vector<traceTree<int>>{
+        traceTree<int>(1, one, false, std::vector<traceTree<int>>{
+            traceTree<int>(1, eps, false, std::vector<traceTree<int>>{}),
+            traceTree<int>(2, eps, false, std::vector<traceTree<int>>{
+                traceTree<int>(3, eps, false, std::vector<traceTree<int>>{})
+            })
+        }),
+        traceTree<int>(2, one, false, std::vector<traceTree<int>>{
+            traceTree<int>(3, one, false, std::vector<traceTree<int>>{
+                traceTree<int>(4, eps, true, std::vector<traceTree<int>>{})
+            })
+        })
+    });
+
+    traceTree<int> test4TraceTree(0, zero, false, std::vector<traceTree<int>>{
+        traceTree<int>(1, zero, true, std::vector<traceTree<int>>{
+            traceTree<int>(2, eps, false, std::vector<traceTree<int>>{})
+        }),
+        traceTree<int>(3, zero, true, std::vector<traceTree<int>>{
+            traceTree<int>(4, eps, false, std::vector<traceTree<int>>{})
+        })
+    });
+
+    traceTree<int> test5TraceTree(1, one, true, std::vector<traceTree<int>>{
+        traceTree<int>(3, one, false, std::vector<traceTree<int>>{
+            traceTree<int>(3, zero, false, std::vector<traceTree<int>>{
+                traceTree<int>(1, eps, true, std::vector<traceTree<int>>{
+                    traceTree<int>(3, eps, false, std::vector<traceTree<int>>{})
+                })
+            })
+        }),
+        traceTree<int>(2, zero, false, std::vector<traceTree<int>>{
+            traceTree<int>(3, eps, false, std::vector<traceTree<int>>{}),
+            traceTree<int>(2, eps, false, std::vector<traceTree<int>>{})
+        })
+    });
+
+    traceTree<int> test6TraceTree(1, zero, false, std::vector<traceTree<int>>{
+        traceTree<int>(3, zero, true, std::vector<traceTree<int>>{
+            traceTree<int>(2, zero, false, std::vector<traceTree<int>>{
+                traceTree<int>(2, one, false, std::vector<traceTree<int>>{
+                    traceTree<int>(2, eps, false),
+                    traceTree<int>(4, eps, false)
+                })
+            }),
+            traceTree<int>(4, one, false, std::vector<traceTree<int>>{
+                traceTree<int>(4, eps, false)
+            })
+        }),
+        traceTree<int>(2, one, false, std::vector<traceTree<int>>{
+            traceTree<int>(2, eps, false),
+            traceTree<int>(4, eps, false)
+        })
+    });
+
+    //testing task 30 using above traceTree as reference
+    forkingTest(test1TraceTree, forking(test1, test1Strings.at(5)));
+    forkingTest(test2TraceTree, forking(test2, test2Strings.at(4)));
+    forkingTest(test3TraceTree, forking(test3, test3Strings.at(1)));
+    forkingTest(test4TraceTree, forking(test4, test4Strings.at(2)));
+    forkingTest(test5TraceTree, forking(test5, test5Strings.at(2)));
+    forkingTest(test6TraceTree, forking(test6, test6Strings.at(2)));
+
+    auto backTest = [](auto nfa, str test){
+        std::cout << "testing backTracing using " << nfa.getName() << " and string " << test.printable() << ": " << (backTracking(nfa, test) ? "true\n": "false\n");
+    };
+    backTest(test1, test1Strings.at(3));
+    backTest(test2, test2Strings.at(0));
+    backTest(test3, test3Strings.at(5));
+    backTest(test4, test4Strings.at(2));
+    backTest(test5, test5Strings.at(5));
+    backTest(test6, test6Strings.at(2));
 }

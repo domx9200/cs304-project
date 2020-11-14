@@ -10,7 +10,6 @@ public:
     void addCharToStr(std::string value);
     void printStr();
     std::string getCharacter(int index);
-    std::vector<Character> getVector();
     void addCharToStrFront(std::string value);
     int getSize();
     Character popValue();
@@ -19,6 +18,7 @@ public:
     std::string printable();
     void clearStr();
     void removeFront();
+    int compare(str toComp);
     str(std::vector<Character> input) {string = input;};
     str(){};
 };
