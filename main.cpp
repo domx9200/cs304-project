@@ -10,6 +10,7 @@
 #include <utility>
 #include <algorithm>
 #include <typeinfo>
+#include <random>
 
 template <typename T>
 void testDFA(DFA<T> toTest)
@@ -259,20 +260,20 @@ bool oracle(NFA<T> input, str check, std::vector<std::pair<T, bool>> trace, bool
 }
 
 template<typename T>
-traceTree<T> forkingHelp(NFA<T> input, str inStr, T qi) {
+traceTree<T> forkingHelp(NFA<T> input, str inStr, T qi, bool wasEps = false) {
     std::vector<traceTree<T>> children;
     std::vector<T> epsilonOutput = input.getDelta()(qi, Character(""));
-    for(int i = 0; i < (int) epsilonOutput.size(); i++) {children.push_back(forkingHelp(input, inStr, epsilonOutput.at(i)));}
+    for(int i = 0; i < (int) epsilonOutput.size(); i++) {children.push_back(forkingHelp(input, inStr, epsilonOutput.at(i), true));}
 
     //end if it reaches epsilon/empty
     if(inStr.getSize() > 0) {
         Character currentChar(inStr.getCharacter(0));
         std::vector<T> charOutput = input.getDelta()(qi, currentChar);
         inStr.removeFront();
-        for(int i = 0; i < (int) charOutput.size(); i++) {children.push_back(forkingHelp(input, inStr, charOutput.at(i)));}
-        return traceTree<T>(qi, currentChar, input.getF()(qi), children);
+        for(int i = 0; i < (int) charOutput.size(); i++) {children.push_back(forkingHelp(input, inStr, charOutput.at(i), false));}
+        return traceTree<T>(qi, currentChar, input.getF()(qi), children, wasEps);
     }
-    return traceTree<T>(qi, Character(""), input.getF()(qi), children);
+    return traceTree<T>(qi, Character(""), input.getF()(qi), children, wasEps);
 }
 
 //task 30
@@ -1286,6 +1287,45 @@ int main(){
     backTest(test4, test4Strings.at(2));
     backTest(test5, test5Strings.at(5));
     backTest(test6, test6Strings.at(2));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //task 31
+    auto genTests = []<typename T>(NFA<T> nfa, str toUse, int toGen = 10){
+        std::cout << "-------------------------------------------------\n";
+        int accepting = 0;
+        auto tt = forking(nfa, toUse);
+        for(int i = 0; i < toGen; i++) {
+            auto ttTest = tt;
+            int temp = toUse.getSize();
+            bool firstRun = true;
+            std::vector<std::pair<T, bool>> traces;
+            while(temp) {
+                if(!firstRun) {
+                    traces.push_back({ttTest.getState(), ttTest.getIsEps()});
+                    if(!ttTest.getIsEps()) {
+                        temp--;
+                    }
+                }
+                if(temp && ttTest.getChildren().size() != 0) {
+                    std::random_device rd;
+                    ttTest = ttTest.getChildren().at(rd() % (int) ttTest.getChildren().size());
+                    firstRun = false;
+                } else if(temp && ttTest.getChildren().size() == 0) {
+                    std::cout << "attempt " << i + 1 << " has failed due to reaching the end of the trace tree before completing the string.\n";
+                    temp = 0;
+                }
+            }
+            if(oracle(nfa, toUse, traces, ttTest.getAccepting(), nfa.getStart()))
+                accepting++;
+        }
+        std::cout << "number of accepted traces: " << accepting << "\n";
+    };
+    genTests(test1, str(std::vector<Character> {one, one, one, zero, zero, one, one, zero, zero, one, one}));
+    genTests(test2, str(std::vector<Character> {zero, one, one, zero}));
+    genTests(test3, str(std::vector<Character> {one, zero, zero, one, one, zero}));
+    genTests(test4, str(std::vector<Character> {zero, zero, zero, zero, zero}));
+    genTests(test5, str(std::vector<Character> {one, one, one, zero, zero, zero}));
+    genTests(test6, str(std::vector<Character> {zero, one, one, one, zero, zero, one, zero}));
     std::cout << "-----------------------------------------------------------------------------------\n";
     auto unionTest = [](auto nfa, str test){
         std::cout << "testing union using " << nfa.getName() << " with string " << test.printable() << ": " << (backTracking(nfa, test) ? "true\n": "false\n"); 

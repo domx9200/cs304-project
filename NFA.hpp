@@ -31,6 +31,7 @@ template <class T> class traceTree {
     T state;
     Character transChar;
     bool isAccepted = NULL;
+    bool isEps = NULL;
     std::vector<traceTree<T>> children{};
     void printTreeHelp(traceTree<T> toPrint, std::string toSpace) {
         if((int) toPrint.getChildren().size() == 0) {
@@ -50,9 +51,13 @@ public:
         :state(state), transChar(transChar), isAccepted(isAccepted), children(children){};
     traceTree(T state, Character transChar, bool isAccepted)
         :state(state), transChar(transChar), isAccepted(isAccepted){};
+    traceTree(T state, Character transChar, bool isAccepted, std::vector<traceTree<T>> children, bool isEps)
+        :state(state), transChar(transChar), isAccepted(isAccepted), isEps(isEps), children(children){};
     Character getTransChar(){return transChar;};
     std::vector<traceTree<T>> getChildren(){return children;};
     T getState(){return state;};
+    bool getAccepting() {return isAccepted;};
+    bool getIsEps() {return isEps;};
     void printTree() {
         if((int) children.size() == 0) {
             std::cout << "[" << state << ", " << (transChar.toString() == "" ? "ε": transChar.toString()) << ", " << (isAccepted ? "T": "F") << "]\n";
