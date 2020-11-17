@@ -339,6 +339,124 @@ bool backTracking(NFA<T> input, str inStr) {
     return false;
 }
 
+//task 33
+template<typename T, typename F>
+NFA<std::pair<int, std::pair<std::optional<T>, std::optional<F>>>> unionNFA(NFA<T> nfa1, NFA<F> nfa2) {
+    std::pair<int, std::pair<std::optional<T>, std::optional<F>>> start = {0, {std::nullopt, std::nullopt}};
+    auto Q1 = nfa1.getQ();
+    auto Q2 = nfa2.getQ();
+    //as detailed in video #6
+    auto newQ = [=](auto state){
+        if(state == start) {
+            return true;
+        }
+        if(state.first == 1 && state.second.first.has_value()) {
+            return Q1(state.second.first.value());
+        }
+        if(state.first == 2 && state.second.second.has_value()) {
+            return Q2(state.second.second.value());
+        }
+        return false;
+    };
+    T Qs1 = nfa1.getStart();
+    F Qs2 = nfa2.getStart();
+    auto D1 = nfa1.getDelta();
+    auto D2 = nfa2.getDelta();
+    //as detailed in video #6
+    auto newDelta = [=](auto state, Character c){
+        std::vector<std::pair<int , std::pair<std::optional<T>, std::optional<F>>>> output;
+        if(state == start && c.equals(Character(""))) {
+            output.push_back({1, {Qs1, std::nullopt}});
+            output.push_back({2, {std::nullopt, Qs2}});
+        }
+        if(state.first == 1 && state.second.first.has_value()) {
+            std::vector<T> temp = D1(state.second.first.value(), c);
+            for(int i = 0; i < (int) temp.size(); i++) {
+                output.push_back({1, {temp.at(i), std::nullopt}});
+            }
+        }
+        if(state.first == 2 && state.second.second.has_value()) {
+            std::vector<F> temp = D2(state.second.second.value(), c);
+            for(int i = 0; i < (int) temp.size(); i++) {
+                output.push_back({2, {std::nullopt, temp.at(i)}});
+            }
+        }
+        return output;
+    };
+
+    auto F1 = nfa1.getF();
+    auto F2 = nfa2.getF();
+    //slightly modified. because you only wanted one new state created
+    //I opted to just return true if either of the inputs return true at a given point.
+    auto newF = [=](auto state) {
+        if(state.first == 1 && state.second.first.has_value()) {
+            return F1(state.second.first.value());
+        }
+        if(state.first == 2 && state.second.second.has_value()) {
+            return F2(state.second.second.value());
+        }
+        return false;
+    };
+    NFA<std::pair<int, std::pair<std::optional<T>, std::optional<F>>>> out(newQ, nfa1.getSigma(), 
+                                                                              start, newDelta, newF);
+    out.setName("(union of " + nfa1.getName() + " and " + nfa2.getName() + ")");
+    return out;
+}
+
+//task 34
+template<typename T, typename F>
+NFA<std::pair<int, std::pair<std::optional<T>, std::optional<F>>>> concNFA(NFA<T> nfa1, NFA<F> nfa2){
+    std::pair<int, std::pair<std::optional<T>, std::optional<F>>> start = {0, {nfa1.getStart(), std::nullopt}};
+    auto Q1 = nfa1.getQ();
+    auto Q2 = nfa2.getQ();
+
+    auto newQ = [=](auto state){
+        if(state.first == 0 && state.second.first.has_value()) {
+            return Q1(state.second.first.value());
+        }
+        if(state.first == 1 && state.second.second.has_value()) {
+            return Q2(state.second.second.value());
+        }
+        return false;
+    };
+
+    auto Qs2 = nfa2.getStart();
+    auto D1 = nfa1.getDelta();
+    auto D2 = nfa2.getDelta();
+    auto F1 = nfa1.getF();
+    auto newDelta = [=](auto state, Character c){
+        std::vector<std::pair<int , std::pair<std::optional<T>, std::optional<F>>>> output;
+        if(state.first == 0 && state.second.first.has_value()) {
+            std::vector<T> temp = D1(state.second.first.value(), c);
+            for(int i = 0; i < (int) temp.size(); i++) {
+                output.push_back({0, {temp.at(i), std::nullopt}});
+            }
+            if(F1(state.second.first.value()) && c.equals(Character(""))) {
+                output.push_back({1, {std::nullopt, Qs2}});
+            }
+        }
+        if(state.first == 1 && state.second.second.has_value()) {
+            std::vector<F> temp = D2(state.second.second.value(), c);
+            for(int i = 0; i < (int) temp.size(); i++) {
+                output.push_back({1, {std::nullopt, temp.at(i)}});
+            }
+        }
+        return output;
+    };
+
+    auto F2 = nfa2.getF();
+    auto newF = [=](auto state){
+        if(state.first == 1 && state.second.second.has_value()) {
+            return F2(state.second.second.value());
+        }
+        return false;
+    };
+    NFA<std::pair<int, std::pair<std::optional<T>, std::optional<F>>>> out(newQ, nfa1.getSigma(), 
+                                                                              start, newDelta, newF);
+    out.setName("(concatenation of " + nfa1.getName() + " and " + nfa2.getName() + ")");
+    return out;
+}
+
 int main(){
     //Task 1-3
     alphabet alpha;
@@ -1050,7 +1168,7 @@ int main(){
     test6Traces.push_back(std::vector<std::pair<int, bool>>{std::make_pair<int, bool>(3,true), std::make_pair<int, bool>(4,false),
                                                             std::make_pair<int, bool>(1,false)});
     test6Strings.push_back(str(std::vector<Character>{zero,one}));
-
+    std::cout << "-----------------------------------------------------------------------------------\n";
     auto oracleTest = [](NFA<int> test, auto traces, auto strings, auto trues){
         std::cout << "printing out the results of oracle using NFA " << test.getName() << "\n";
         for(int i = 0; i < (int)traces.size(); i++){
@@ -1158,7 +1276,7 @@ int main(){
     forkingTest(test4TraceTree, forking(test4, test4Strings.at(2)));
     forkingTest(test5TraceTree, forking(test5, test5Strings.at(2)));
     forkingTest(test6TraceTree, forking(test6, test6Strings.at(2)));
-
+    std::cout << "-----------------------------------------------------------------------------------\n";
     auto backTest = [](auto nfa, str test){
         std::cout << "testing backTracing using " << nfa.getName() << " and string " << test.printable() << ": " << (backTracking(nfa, test) ? "true\n": "false\n");
     };
@@ -1168,4 +1286,61 @@ int main(){
     backTest(test4, test4Strings.at(2));
     backTest(test5, test5Strings.at(5));
     backTest(test6, test6Strings.at(2));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    auto unionTest = [](auto nfa, str test){
+        std::cout << "testing union using " << nfa.getName() << " with string " << test.printable() << ": " << (backTracking(nfa, test) ? "true\n": "false\n"); 
+    };
+    auto unTest = unionNFA(test1, test2);
+    auto unTest2 = unionNFA(test1, test5);
+    auto unTest3 = unionNFA(test2, test3);
+    auto unTest4 = unionNFA(test6, test2);
+    auto unTest5 = unionNFA(unTest, unTest2);
+    auto unTest6 = unionNFA(unTest3, unTest4);
+
+    //three tests each, one for each situation
+    //failure state for both, pass for one, and pass for the other
+    //if it outputs false, true, true, then it is correct.
+    unionTest(unTest, test1Strings.at(5));
+    unionTest(unTest, test1Strings.at(1));
+    unionTest(unTest, test2Strings.at(3));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    unionTest(unTest2, test1Strings.at(5));
+    unionTest(unTest2, test1Strings.at(1));
+    unionTest(unTest2, test5Strings.at(0));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    unionTest(unTest3, test1Strings.at(0));
+    unionTest(unTest3, test2Strings.at(3));
+    unionTest(unTest3, test3Strings.at(1));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    unionTest(unTest4, test6Strings.at(0));
+    unionTest(unTest4, test6Strings.at(3));
+    unionTest(unTest4, test2Strings.at(3));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    unionTest(unTest5, test1Strings.at(5));
+    unionTest(unTest5, test1Strings.at(1));
+    unionTest(unTest5, test5Strings.at(0));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    unionTest(unTest6, test6Strings.at(0));
+    unionTest(unTest6, test2Strings.at(3));
+    unionTest(unTest6, test6Strings.at(3));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    auto concTest = [](auto nfa, str test){
+        std::cout << "testing concat using " << nfa.getName() << " with string " << test.printable() << ": " << (backTracking(nfa, test) ? "true\n": "false\n");
+    };
+    //first 6 should pass
+    concTest(concNFA(test1, test2), str(std::vector<Character>{zero, one, one, one, one, one, zero}));
+    concTest(concNFA(test3, test5), str(std::vector<Character>{one, one, one, zero, zero, zero, zero}));
+    concTest(concNFA(unTest, test6), str(std::vector<Character>{one, one, zero, zero, one, zero}));
+    concTest(concNFA(unTest2, unTest3), str(std::vector<Character>{zero, one, one, one, one, one}));
+    concTest(concNFA(unTest4, unTest5), str(std::vector<Character>{zero, one, zero, zero}));
+    concTest(concNFA(test1, unTest6), str(std::vector<Character>{zero, one, one, one, zero, one, zero}));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    //these 6 should fail
+    concTest(concNFA(test1, test2), str(std::vector<Character>{zero, one, one, one, one}));
+    concTest(concNFA(test3, test5), str(std::vector<Character>{one}));
+    concTest(concNFA(unTest, test6), str(std::vector<Character>{one}));
+    concTest(concNFA(unTest2, unTest3), str(std::vector<Character>{zero}));
+    concTest(concNFA(unTest4, unTest5), str(std::vector<Character>{zero, one}));
+    concTest(concNFA(test1, unTest6), str(std::vector<Character>{zero, one, zero}));
 }

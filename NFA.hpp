@@ -22,6 +22,8 @@ public:
     std::function<std::vector<T>(T, Character)> getDelta() {return Delta;};
     std::function<bool(T)> getF() {return F;};
     T getStart(){return q0;};
+    std::function<bool(T)> getQ() {return Q;};
+    alphabet getSigma() {return Sigma;};
 };
 
 //task 28
