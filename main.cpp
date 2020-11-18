@@ -1191,6 +1191,7 @@ int main(){
         std::cout << "now printing the function made trace tree\n";
         functionMade.printTree();
     };
+    
     //this sucks to make by hand, also task 29
     traceTree<int> test1TraceTree(0, one, false, std::vector<traceTree<int>>{
         traceTree<int>(0, Character(""), false, std::vector<traceTree<int>>{}),
@@ -1289,14 +1290,16 @@ int main(){
     backTest(test6, test6Strings.at(2));
     std::cout << "-----------------------------------------------------------------------------------\n";
 
-    //task 31
+    //task 31 also doubles as a trace tree and oracle test
     auto genTests = []<typename T>(NFA<T> nfa, str toUse, int toGen = 10){
         std::cout << "-------------------------------------------------\n";
         int accepting = 0;
         auto tt = forking(nfa, toUse);
         for(int i = 0; i < toGen; i++) {
             auto ttTest = tt;
+            str output;
             int temp = toUse.getSize();
+            str breakS = toUse;
             bool firstRun = true;
             std::vector<std::pair<T, bool>> traces;
             while(temp) {
@@ -1304,6 +1307,8 @@ int main(){
                     traces.push_back({ttTest.getState(), ttTest.getIsEps()});
                     if(!ttTest.getIsEps()) {
                         temp--;
+                        output.addCharToStr(breakS.getCharacter(0));
+                        breakS.removeFront();
                     }
                 }
                 if(temp && ttTest.getChildren().size() != 0) {
@@ -1311,8 +1316,10 @@ int main(){
                     ttTest = ttTest.getChildren().at(rd() % (int) ttTest.getChildren().size());
                     firstRun = false;
                 } else if(temp && ttTest.getChildren().size() == 0) {
-                    std::cout << "attempt " << i + 1 << " has failed due to reaching the end of the trace tree before completing the string.\n";
+                    std::cout << "attempt " << i + 1 << " has reached the end before reaching full string, using string generated up to this point\n";
                     temp = 0;
+                    if(oracle(nfa, output, traces, ttTest.getAccepting(), nfa.getStart()))
+                        accepting++;
                 }
             }
             if(oracle(nfa, toUse, traces, ttTest.getAccepting(), nfa.getStart()))
@@ -1340,26 +1347,33 @@ int main(){
     //three tests each, one for each situation
     //failure state for both, pass for one, and pass for the other
     //if it outputs false, true, true, then it is correct.
+    //genTests are extra tests each is a total of 10 
+    genTests(unTest, str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     unionTest(unTest, test1Strings.at(5));
     unionTest(unTest, test1Strings.at(1));
     unionTest(unTest, test2Strings.at(3));
     std::cout << "-----------------------------------------------------------------------------------\n";
+    genTests(unTest2, str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     unionTest(unTest2, test1Strings.at(5));
     unionTest(unTest2, test1Strings.at(1));
     unionTest(unTest2, test5Strings.at(0));
     std::cout << "-----------------------------------------------------------------------------------\n";
+    genTests(unTest3, str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     unionTest(unTest3, test1Strings.at(0));
     unionTest(unTest3, test2Strings.at(3));
     unionTest(unTest3, test3Strings.at(1));
     std::cout << "-----------------------------------------------------------------------------------\n";
+    genTests(unTest4, str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     unionTest(unTest4, test6Strings.at(0));
     unionTest(unTest4, test6Strings.at(3));
     unionTest(unTest4, test2Strings.at(3));
     std::cout << "-----------------------------------------------------------------------------------\n";
+    genTests(unTest5, str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     unionTest(unTest5, test1Strings.at(5));
     unionTest(unTest5, test1Strings.at(1));
     unionTest(unTest5, test5Strings.at(0));
     std::cout << "-----------------------------------------------------------------------------------\n";
+    genTests(unTest6, str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     unionTest(unTest6, test6Strings.at(0));
     unionTest(unTest6, test2Strings.at(3));
     unionTest(unTest6, test6Strings.at(3));
@@ -1383,4 +1397,12 @@ int main(){
     concTest(concNFA(unTest2, unTest3), str(std::vector<Character>{zero}));
     concTest(concNFA(unTest4, unTest5), str(std::vector<Character>{zero, one}));
     concTest(concNFA(test1, unTest6), str(std::vector<Character>{zero, one, zero}));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    //extra conc tests
+    genTests(concNFA(test1, test2), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
+    genTests(concNFA(test3, test5), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
+    genTests(concNFA(unTest, test6), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
+    genTests(concNFA(unTest2, unTest3), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
+    genTests(concNFA(unTest4, unTest5), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
+    genTests(concNFA(test1, unTest6), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
 }
