@@ -11,12 +11,13 @@
 #include <algorithm>
 #include <typeinfo>
 #include <random>
+#include <unordered_set>
 
 template <typename T>
 void testDFA(DFA<T> toTest)
 {
     std::cout << "printing output of DFA " << toTest.getName() << "\n";
-    for(int i = 0; i < 20; i++)
+    for(int i = 0; i < 40; i++)
     {
         std::cout << "using string " << toTest.getSigma().findNLexo(i).printable() << ": " << toTest.runDFA(toTest.getSigma().findNLexo(i)) << "\n";
     }
@@ -456,6 +457,111 @@ NFA<std::pair<int, std::pair<std::optional<T>, std::optional<F>>>> concNFA(NFA<T
                                                                               start, newDelta, newF);
     out.setName("(concatenation of " + nfa1.getName() + " and " + nfa2.getName() + ")");
     return out;
+}
+
+//task 36
+template<typename T>
+NFA<std::pair<int, std::optional<T>>> kleeneStar(NFA<T> input) {
+    std::pair<int, std::optional<T>> newStart = {-1, std::nullopt};
+    auto oldQ = input.getQ();
+    auto newQ = [=](std::pair<int, std::optional<T>> state){
+        if(state.first == -1)
+            return true;
+        else if(state.first == 0 && state.second.has_value())  
+            return oldQ(state.second.value());
+        return false;
+    };
+
+    auto oldDelta = input.getDelta();
+    std::function<bool(T)> oldF = input.getF();
+    T oldStart = input.getStart();
+    auto newDelta = [=](std::pair<int, std::optional<T>> state, Character c){
+        std::vector<std::pair<int, std::optional<T>>> output;
+        if(state.first == -1 && c.equals(Character("")))
+            output.push_back({0, oldStart});
+        if(state.first == 0 && state.second.has_value()) {
+            std::vector<T> temp = oldDelta(state.second.value(), c);
+            for(int i = 0; i < (int) temp.size(); i++)
+                output.push_back({0, temp.at(i)});
+        }
+        if(state.first == 0 && c.equals(Character("")) && state.second.has_value())
+            if(oldF(state.second.value()))
+                output.push_back(newStart);
+        return output;
+    };
+
+    auto newF = [=](std::pair<int, std::optional<T>> state){return state.first == -1;};
+
+    NFA<std::pair<int,std::optional<T>>> out(newQ, input.getSigma(), newStart, newDelta, newF);
+    out.setName("(Kleene star of " + input.getName() + ")");
+    return out;
+}
+
+template<typename T>
+DFA<std::vector<T>> compile(NFA<T> input){
+    auto Qn = input.getQ();
+    auto Qd = [=](std::vector<T> state){
+        std::vector<T> found;
+        for(int i = 0; i < (int)state.size(); i++){
+            if(Qn(state.at(i))){
+                for(int j = 0; j < (int)found.size(); j++){
+                    if(state.at(i) == found.at(j))
+                        return false;
+                }
+                found.push_back(state.at(i));
+            } else
+                return false;
+        }
+        return true;
+    };
+
+    auto Dn = input.getDelta();
+    auto E = [=](std::vector<T> input){
+        bool changed = true;
+        while(changed){
+            changed = false;
+            for(int i = 0; i < (int) input.size(); i++){
+                std::vector<T> temp = Dn(input.at(i), Character(""));
+                for(int j = 0; j < (int) temp.size(); j++)
+                    if(std::find(input.begin(), input.end(), temp.at(j)) == input.end()){
+                        changed = true;
+                        input.push_back(temp.at(j));
+                    }
+            }
+        }
+        return input;
+    };
+
+    std::vector<T> startState = {input.getStart()};
+    startState = E(startState);
+
+    auto Fn = input.getF();
+    auto Fd = [=](std::vector<T> state){
+        for(int i = 0; i < (int) state.size(); i++) 
+            if(Fn(state.at(i)))
+                return true;
+        return false;
+    };
+
+    auto Dd = [=](std::vector<T> state, Character c){
+        std::vector<T> check;
+        for(int i = 0; i < (int) state.size(); i++){
+            std::vector<T> temp = Dn(state.at(i), c);
+            check.insert(check.end(), temp.begin(), temp.end());
+        }
+
+        for(int i = 0; i < (int) check.size(); i++){
+            for(int j = 0; j < (int) check.size(); j++){
+                if(check.at(i) == check.at(j) && i != j){
+                    check.erase(check.begin() + j);
+                }
+            }
+        }
+        return E(check);
+    };
+    DFA<std::vector<T>> newDFA(Qd, input.getSigma(), startState, Dd, Fd);
+    newDFA.setName("DFA created from " + input.getName());
+    return newDFA;
 }
 
 int main(){
@@ -1293,37 +1399,47 @@ int main(){
     //task 31 also doubles as a trace tree and oracle test
     auto genTests = []<typename T>(NFA<T> nfa, str toUse, int toGen = 10){
         std::cout << "-------------------------------------------------\n";
+        int cap = 50;
         int accepting = 0;
         auto tt = forking(nfa, toUse);
         for(int i = 0; i < toGen; i++) {
+            int j;
+            std::vector<std::pair<T, bool>> traces;
             auto ttTest = tt;
             str output;
             int temp = toUse.getSize();
             str breakS = toUse;
             bool firstRun = true;
-            std::vector<std::pair<T, bool>> traces;
-            while(temp) {
-                if(!firstRun) {
-                    traces.push_back({ttTest.getState(), ttTest.getIsEps()});
-                    if(!ttTest.getIsEps()) {
-                        temp--;
-                        output.addCharToStr(breakS.getCharacter(0));
-                        breakS.removeFront();
+            traces.clear();
+            for(j = 0; j < cap && temp; j++) {
+                while(temp) {
+                    if(!firstRun) {
+                        traces.push_back({ttTest.getState(), ttTest.getIsEps()});
+                        if(!ttTest.getIsEps()) {
+                            temp--;
+                            output.addCharToStr(breakS.getCharacter(0));
+                            breakS.removeFront();
+                        }
+                    }
+                    if(temp && ttTest.getChildren().size() != 0) {
+                        std::random_device rd;
+                        ttTest = ttTest.getChildren().at(rd() % (int) ttTest.getChildren().size());
+                        firstRun = false;
+                    } else if(temp && ttTest.getChildren().size() == 0) {
+                        std::cout << "attempt " << i + 1 << " has reached the end before reaching full string, using string generated up to this point\n";
+                        temp = 0;
+                        if(oracle(nfa, output, traces, ttTest.getAccepting(), nfa.getStart()))
+                            accepting++;
                     }
                 }
-                if(temp && ttTest.getChildren().size() != 0) {
-                    std::random_device rd;
-                    ttTest = ttTest.getChildren().at(rd() % (int) ttTest.getChildren().size());
-                    firstRun = false;
-                } else if(temp && ttTest.getChildren().size() == 0) {
-                    std::cout << "attempt " << i + 1 << " has reached the end before reaching full string, using string generated up to this point\n";
-                    temp = 0;
-                    if(oracle(nfa, output, traces, ttTest.getAccepting(), nfa.getStart()))
-                        accepting++;
-                }
+                if(oracle(nfa, toUse, traces, ttTest.getAccepting(), nfa.getStart()))
+                    accepting++;
             }
-            if(oracle(nfa, toUse, traces, ttTest.getAccepting(), nfa.getStart()))
-                accepting++;
+            if(j == 50) {
+                std::cout << "number of steps reached hard cap of 50, terminating current run, will run oracle with what was generated\n";
+                if(oracle(nfa, toUse, traces, ttTest.getAccepting(), nfa.getStart()))
+                    accepting++;
+            }
         }
         std::cout << "number of accepted traces: " << accepting << "\n";
     };
@@ -1405,4 +1521,118 @@ int main(){
     genTests(concNFA(unTest2, unTest3), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     genTests(concNFA(unTest4, unTest5), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
     genTests(concNFA(test1, unTest6), str(std::vector<Character> {one, one, zero, zero, one, zero, one, zero, zero, one, one}));
+    std::cout << "-----------------------------------------------------------------------------------\n";
+    //task 37
+    //works best when you have at least 2 accepted strings, as it uses them to build larger strings to test with
+    //the most it will append strings together is 8, as I don't want the input to be so long as to cause problems
+    //still takes a small bit of time to run though.
+    auto kleeneTests = [=]<typename T>(NFA<T> input, std::vector<str> acceptedStrings, int toGen = 10){
+        std::random_device rd;
+        int passes = 0;
+        str toUse;
+        for(int j = 0; j < toGen; j++) {
+            int appendTimes = (rd() % 8) + 1;
+            for(int i = 0; i < appendTimes; i++)
+                toUse.append(acceptedStrings.at(rd() % (int) acceptedStrings.size()));
+            if(backTracking(input, toUse))
+                passes++;
+        }
+        std::cout << "number of accepted strings: " << passes << " number that should pass: " << toGen << "\n";
+    };
+    kleeneTests(kleeneStar(test1), std::vector<str>{str(std::vector<Character>{zero, one, one, one}), str(std::vector<Character>{one, zero, zero}), 
+                                                   str(std::vector<Character>{one, zero, zero, one})});
+    kleeneTests(kleeneStar(test2), std::vector<str>{str(std::vector<Character>{one,one,zero}), str(std::vector<Character>{one,one,zero,one})});
+    kleeneTests(kleeneStar(test3), std::vector<str>{str(std::vector<Character>{one,one}), str(std::vector<Character>{one,one,zero,one})});
+    kleeneTests(kleeneStar(test4), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,zero})});
+    kleeneTests(kleeneStar(test5), std::vector<str>{str(std::vector<Character>{zero}), str(std::vector<Character>{one, one, zero})});
+    kleeneTests(kleeneStar(test6), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,one,zero})});
+    std::cout << "-----------------------------------------------------------------------------------\n";
+
+    //task 39
+    testDFA(compile(test1));
+    testDFA(compile(test2));
+    testDFA(compile(test3));
+    testDFA(compile(test4));
+    testDFA(compile(test5));
+    testDFA(compile(test6));
+
+    //task 40
+    //manual conversion of test1, and test3, and test4
+    DFA<int> test1MC([](int state){return state >= 0 && state < 8;}, alpha, 0, [](int state, Character c){
+        switch(state) {
+            case 0:
+                if(c.equals(Character("0"))){return 0;}
+                else{return 1;}
+            case 1:
+                if(c.equals(Character("1"))){return 2;}
+                else{return 3;}
+            case 2:
+                if(c.equals(Character("0"))){return 7;}
+                else{return 6;}
+            case 3:
+                if(c.equals(Character("0"))){return 4;}
+                else{return 5;}
+            case 4:
+                if(c.equals(Character("1"))){return 5;}
+                else{return 4;}
+            case 5:
+                if(c.equals(Character("0"))){return 7;}
+                else{return 6;}
+            case 6:
+                if(c.equals(Character("0"))){return 7;}
+                else{return 6;}
+            case 7:
+                if(c.equals(Character("0"))){return 4;}
+                else{return 5;} 
+        }
+        return -1;
+    }, [](int state){return state > 3 && state < 8;});
+
+    testDFA(test1MC);
+
+    DFA<int> test2MC([](int state){return state >= 1 && state < 7;}, alpha, 1, [](int state, Character c){
+        switch(state) {
+            case 1:
+                if(c.equals(Character("1"))){return 2;}
+                else{return 1;}
+            case 2:
+                if(c.equals(Character("0"))){return 6;}
+                else{return 3;}
+            case 3:
+                if(c.equals(Character("0"))){return 4;}
+                else{return 3;}
+            case 4:
+                if(c.equals(Character("1"))){return 3;}
+                else{return 5;}
+            case 5:
+                if(c.equals(Character("0"))){return 5;}
+                else{return 3;}
+            case 6:
+                if(c.equals(Character("0"))){return 1;}
+                else{return 3;}
+        }
+        return -1;
+    }, [](int state){return state > 2 && state < 6;});
+
+    testDFA(test2MC);
+
+    DFA<int> test3MC([](int state){return state >= 1 && state < 7;}, singleCharacter, 1, [](int state, Character c){
+        switch(state) {
+            case 1:
+                return 2;
+            case 2:
+                return 3;
+            case 3:
+                return 4;
+            case 4:
+                return 5;
+            case 5:
+                return 6;
+            case 6:
+                return 1;
+        }
+        return -1;
+    }, [](int state){return state != 2 && state != 6;});
+
+    testDFA(test3MC);
 }

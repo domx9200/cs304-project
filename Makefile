@@ -1,5 +1,5 @@
-all: Character.o main.o alpha.o str.o DFA.hpp NFA.hpp
-	g++ -o out Character.o main.o alpha.o str.o DFA.hpp NFA.hpp
+all: Character.o main.o alpha.o str.o DFA.hpp NFA.hpp reg.hpp
+	g++ -o out Character.o main.o alpha.o str.o DFA.hpp NFA.hpp reg.hpp
 
 Character.o: Character.cpp Character.hpp
 	g++ -g -c -Og -Werror -ansi -Wall -pedantic -o $@ $< -std=c++2a

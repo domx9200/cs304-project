@@ -19,6 +19,7 @@ public:
     void clearStr();
     void removeFront();
     int compare(str toComp);
+    void append(str toAppend);
     str(std::vector<Character> input) {string = input;};
     str(){};
 };

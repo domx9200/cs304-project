@@ -94,3 +94,14 @@ int str::compare(str toComp) {
     }
     return thisS.compare(compS);
 }
+
+void str::append(str toAppend) {
+    std::vector<Character> newStr;
+    for(int i = 0; i < (int) this->string.size(); i++) {
+        newStr.push_back(this->string.at(i));
+    }
+    for(int i = 0; i < toAppend.getSize(); i++) {
+        newStr.push_back(toAppend.getCharacter(i));
+    }
+    this->string = newStr;
+}
