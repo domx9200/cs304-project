@@ -3,6 +3,7 @@
 #include "str.hpp"
 #include "DFA.hpp"
 #include "NFA.hpp"
+#include "reg.hpp"
 #include <list>
 #include <iostream>
 #include <vector>
@@ -1539,12 +1540,12 @@ int main(){
         }
         std::cout << "number of accepted strings: " << passes << " number that should pass: " << toGen << "\n";
     };
-    kleeneTests(kleeneStar(test1), std::vector<str>{str(std::vector<Character>{zero, one, one, one}), str(std::vector<Character>{one, zero, zero}), 
-                                                   str(std::vector<Character>{one, zero, zero, one})});
-    kleeneTests(kleeneStar(test2), std::vector<str>{str(std::vector<Character>{one,one,zero}), str(std::vector<Character>{one,one,zero,one})});
-    kleeneTests(kleeneStar(test3), std::vector<str>{str(std::vector<Character>{one,one}), str(std::vector<Character>{one,one,zero,one})});
-    kleeneTests(kleeneStar(test4), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,zero})});
-    kleeneTests(kleeneStar(test5), std::vector<str>{str(std::vector<Character>{zero}), str(std::vector<Character>{one, one, zero})});
+    // kleeneTests(kleeneStar(test1), std::vector<str>{str(std::vector<Character>{zero, one, one, one}), str(std::vector<Character>{one, zero, zero}), 
+    //                                                str(std::vector<Character>{one, zero, zero, one})});
+    // kleeneTests(kleeneStar(test2), std::vector<str>{str(std::vector<Character>{one,one,zero}), str(std::vector<Character>{one,one,zero,one})});
+    // kleeneTests(kleeneStar(test3), std::vector<str>{str(std::vector<Character>{one,one}), str(std::vector<Character>{one,one,zero,one})});
+    // kleeneTests(kleeneStar(test4), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,zero})});
+    // kleeneTests(kleeneStar(test5), std::vector<str>{str(std::vector<Character>{zero}), str(std::vector<Character>{one, one, zero})});
     kleeneTests(kleeneStar(test6), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,one,zero})});
     std::cout << "-----------------------------------------------------------------------------------\n";
 
@@ -1635,4 +1636,24 @@ int main(){
     }, [](int state){return state != 2 && state != 6;});
 
     testDFA(test3MC);
+    regex test1reg("circ", std::vector<regex>{
+        regex("star", std::vector<regex>{
+            regex("union", std::vector<regex>{
+                regex("char", "0"), regex("char", "1")
+            })
+        }),
+        regex("circ", std::vector<regex>{
+            regex("char", "1"),
+            regex("circ", std::vector<regex>{
+                regex("union", std::vector<regex>{
+                    regex("char", "0"), regex("char", "1")
+                }),
+                regex("union", std::vector<regex>{
+                    regex("char", "0"), regex("char", "1")
+                })
+            })
+        })
+    });
+    
+    std::cout << test1reg.printRegex(test1reg) << "\n";
 }
