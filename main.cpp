@@ -1636,7 +1636,35 @@ int main(){
     }, [](int state){return state != 2 && state != 6;});
 
     testDFA(test3MC);
-    regex test1reg("circ", std::vector<regex>{
+    
+    //task 43, using task 42 to test
+    regex test1reg("empty");
+    std::cout << test1reg.printRegex(test1reg) << "\n";
+
+    regex test2reg("epsilon");
+    std::cout << test2reg.printRegex(test2reg) << "\n";
+
+    regex test3reg("char", "1");
+    std::cout << test3reg.printRegex(test3reg) << "\n";
+
+    regex test4reg("circ", std::vector<regex>{
+        regex("char", "0"),
+        regex("char", "1")
+    });
+    std::cout << test4reg.printRegex(test4reg) << "\n";
+
+    regex test5reg("star", std::vector<regex>{
+        regex("char", "c")
+    });
+    std::cout << test5reg.printRegex(test5reg) << "\n";
+
+    regex test6reg("union", std::vector<regex>{
+        regex("char", "1"),
+        regex("char", "0")
+    });
+    std::cout << test6reg.printRegex(test6reg) << "\n";
+
+    regex test7reg("circ", std::vector<regex>{
         regex("star", std::vector<regex>{
             regex("union", std::vector<regex>{
                 regex("char", "0"), regex("char", "1")
@@ -1654,6 +1682,50 @@ int main(){
             })
         })
     });
-    
-    std::cout << test1reg.printRegex(test1reg) << "\n";
+    std::cout << test1reg.printRegex(test7reg) << "\n";
+
+    regex test8reg("union", std::vector<regex>{
+        regex("circ", std::vector<regex>{
+            regex("char", "1"),
+            regex("union", std::vector<regex>{
+                regex("char", "0"),
+                regex("empty")
+            })
+        }),
+        regex("star", std::vector<regex>{
+            regex("union", std::vector<regex>{
+                regex("char", "0"),
+                regex("epsilon")
+            })
+        })
+    });
+    std::cout << test8reg.printRegex(test8reg) << "\n";
+
+    regex test9reg("star", std::vector<regex>{
+        regex("union", std::vector<regex>{
+            regex("circ", std::vector<regex>{
+                regex("char", "0"),
+                regex("union", std::vector<regex>{
+                    regex("empty"),
+                    regex("epsilon")
+                })
+            }),
+            regex("star", std::vector<regex>{
+                regex("circ", std::vector<regex>{
+                    regex("epsilon"),
+                    regex("char", "1")
+                })
+            })
+        })
+    });
+    std::cout << test9reg.printRegex(test9reg) << "\n";
+
+    regex test10reg("circ", std::vector<regex>{
+        regex("empty"),
+        regex("union", std::vector<regex>{
+            regex("char", "1"),
+            regex("char", "0")
+        })
+    });
+    std::cout << test10reg.printRegex(test10reg) << "\n";
 }
