@@ -1640,29 +1640,47 @@ int main(){
     //task 43, using task 42 to test
     regex test1reg("empty");
     std::cout << test1reg.printRegex(test1reg) << "\n";
+    //accepting is first, then failing, only the empty strings passes here
+    std::vector<std::string> test1regStrings = {"", "00", "01", "10", "11"};
 
     regex test2reg("epsilon");
+    //to be honest im not sure there are any accepting strings
+    //the way I understand it, the epsilon notation means that it will always
+    //transfer to a failing state, if we look at it in terms of NFAs.
+    //for that reason I will be reusing the strings from the first reg
     std::cout << test2reg.printRegex(test2reg) << "\n";
+    std::vector<std::string> test2regStrings = {"", "00", "01", "10", "11"};
 
     regex test3reg("char", "1");
+    //will only accept if the string is a single character '1'
     std::cout << test3reg.printRegex(test3reg) << "\n";
+    std::vector<std::string> test3regStrings = {"1", "00", "01", "10", "11"};
 
     regex test4reg("circ", std::vector<regex>{
         regex("char", "0"),
         regex("char", "1")
     });
+    //circ = append, so the only string that would be accepted here would be 01
     std::cout << test4reg.printRegex(test4reg) << "\n";
+    std::vector<std::string> test4regStrings = {"01", "00", "", "10", "11"};
 
     regex test5reg("star", std::vector<regex>{
         regex("char", "c")
     });
+    //star makes it an infinite loop, so it should pass so long as the character
+    //in each string is 'c'
     std::cout << test5reg.printRegex(test5reg) << "\n";
+    std::vector<std::string> test5regStrings = {"c", "cc", "ccc", "", "0", "1"};
 
     regex test6reg("union", std::vector<regex>{
         regex("char", "1"),
         regex("char", "0")
     });
+    //union is either or, so it would accept if the string is either
+    //only the character 0, or the character 1. It would fail if the string is larger
+    //than one however due to the nature of regex
     std::cout << test6reg.printRegex(test6reg) << "\n";
+    std::vector<std::string> test6regStrings = {"0", "1", "10", "11", ""};
 
     regex test7reg("circ", std::vector<regex>{
         regex("star", std::vector<regex>{
@@ -1682,7 +1700,11 @@ int main(){
             })
         })
     });
+    //this is the regex taken from your video, I used it as a through test on my printing
+    //accepted strings would be things like 100, or 0000001111100 as it only cares
+    //if there is a 1 in the third spot
     std::cout << test1reg.printRegex(test7reg) << "\n";
+    std::vector<std::string> test7regStrings = {"100", "0000001111100", "01101", "10", "11", "0001000", "001011011"};
 
     regex test8reg("union", std::vector<regex>{
         regex("circ", std::vector<regex>{
@@ -1699,7 +1721,12 @@ int main(){
             })
         })
     });
+    //one that I created by randomly slapping together regex bits
+    //I have no idea what it does, though I can figure it out.
+    //it looks like a few accepting strings would be
+    //1, 10, epsilon, 0000000000000
     std::cout << test8reg.printRegex(test8reg) << "\n";
+    std::vector<std::string> test8regStrings = {"1","10","","00000000000","000010001","01110","01"};
 
     regex test9reg("star", std::vector<regex>{
         regex("union", std::vector<regex>{
@@ -1718,7 +1745,14 @@ int main(){
             })
         })
     });
+    //like above i didn't really but any thought into how it'll pass
+    //just that I wanted it to be sort of complicated.
+    //accepting strings are:
+    //"0","1", "0101010101", "0000011111"
+    //actually upon closer look, the only failing state is the empty set. I think.
+    //to be honest i'm still not sure about epsilons in this context
     std::cout << test9reg.printRegex(test9reg) << "\n";
+    std::vector<std::string> test9regStrings = {"0", "1", "010101010101", "0000011111", ""};
 
     regex test10reg("circ", std::vector<regex>{
         regex("empty"),
@@ -1727,5 +1761,8 @@ int main(){
             regex("char", "0")
         })
     });
+    //accepting strings for this one is:
+    //"10", ""
     std::cout << test10reg.printRegex(test10reg) << "\n";
+    std::vector<std::string> test1regStrings = {"10", "", "111","001","01010"};
 }
