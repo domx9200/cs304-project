@@ -498,6 +498,7 @@ NFA<std::pair<int, std::optional<T>>> kleeneStar(NFA<T> input) {
     return out;
 }
 
+//task 38
 template<typename T>
 DFA<std::vector<T>> compile(NFA<T> input){
     auto Qn = input.getQ();
@@ -563,6 +564,55 @@ DFA<std::vector<T>> compile(NFA<T> input){
     DFA<std::vector<T>> newDFA(Qd, input.getSigma(), startState, Dd, Fd);
     newDFA.setName("DFA created from " + input.getName());
     return newDFA;
+}
+
+//task 45
+std::optional<std::string> generate(regex input){
+    if(input.getType().compare("empty") == 0)
+        return std::nullopt;
+    if(input.getType().compare("epsilon") == 0)
+        return "";
+    if(input.getType().compare("char") == 0)
+        return input.getChar();
+    if(input.getType().compare("union") == 0){
+        std::random_device rd;
+        int decide = rd() % 2;
+        if(decide) {
+            auto in = generate(input.getInputs().at(0));
+            if(!in.has_value()){
+                return generate(input.getInputs().at(1));
+            }
+            return in;
+        } else {
+            auto in = generate(input.getInputs().at(1));
+            if(!in.has_value()){
+                return generate(input.getInputs().at(0));
+            }
+            return in;
+        }
+    }
+    if(input.getType().compare("star") == 0){
+        std::random_device rd;
+        int decide = rd() % 2;
+        if(decide) {
+            return "";
+        } else {
+            return generate(regex("circ", std::vector<regex>{
+                input.getInputs().at(0),
+                input
+            }));
+        }
+    }
+    if(input.getType().compare("circ") == 0){
+        auto left = generate(input.getInputs().at(0));
+        auto right = generate(input.getInputs().at(1));
+        if(left.has_value() && right.has_value()){
+            return left.value() + right.value();
+        } else {
+            return std::nullopt;
+        }
+    }
+    return std::nullopt;
 }
 
 int main(){
@@ -1540,12 +1590,12 @@ int main(){
         }
         std::cout << "number of accepted strings: " << passes << " number that should pass: " << toGen << "\n";
     };
-    // kleeneTests(kleeneStar(test1), std::vector<str>{str(std::vector<Character>{zero, one, one, one}), str(std::vector<Character>{one, zero, zero}), 
-    //                                                str(std::vector<Character>{one, zero, zero, one})});
-    // kleeneTests(kleeneStar(test2), std::vector<str>{str(std::vector<Character>{one,one,zero}), str(std::vector<Character>{one,one,zero,one})});
-    // kleeneTests(kleeneStar(test3), std::vector<str>{str(std::vector<Character>{one,one}), str(std::vector<Character>{one,one,zero,one})});
-    // kleeneTests(kleeneStar(test4), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,zero})});
-    // kleeneTests(kleeneStar(test5), std::vector<str>{str(std::vector<Character>{zero}), str(std::vector<Character>{one, one, zero})});
+    kleeneTests(kleeneStar(test1), std::vector<str>{str(std::vector<Character>{zero, one, one, one}), str(std::vector<Character>{one, zero, zero}), 
+                                                   str(std::vector<Character>{one, zero, zero, one})});
+    kleeneTests(kleeneStar(test2), std::vector<str>{str(std::vector<Character>{one,one,zero}), str(std::vector<Character>{one,one,zero,one})});
+    kleeneTests(kleeneStar(test3), std::vector<str>{str(std::vector<Character>{one,one}), str(std::vector<Character>{one,one,zero,one})});
+    kleeneTests(kleeneStar(test4), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,zero})});
+    kleeneTests(kleeneStar(test5), std::vector<str>{str(std::vector<Character>{zero}), str(std::vector<Character>{one, one, zero})});
     kleeneTests(kleeneStar(test6), std::vector<str>{str(std::vector<Character>{}), str(std::vector<Character>{zero,one,zero})});
     std::cout << "-----------------------------------------------------------------------------------\n";
 
@@ -1761,8 +1811,19 @@ int main(){
             regex("char", "0")
         })
     });
-    //accepting strings for this one is:
-    //"10", ""
+    //there would be no accepting strings, simply due to the fact
+    //that the circ has an empty in it.
     std::cout << test10reg.printRegex(test10reg) << "\n";
-    std::vector<std::string> test1regStrings = {"10", "", "111","001","01010"};
+    std::vector<std::string> test10regStrings = {"10", "", "111","001","01010"};
+
+    std::cout << "accepted string for test1reg: " << generate(test1reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test2reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test3reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test4reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test5reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test6reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test7reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test8reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test9reg).value_or("no string") << "\n";
+    std::cout << "accepted string for test1reg: " << generate(test10reg).value_or("no string") << "\n";
 }
